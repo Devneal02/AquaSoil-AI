@@ -1,0 +1,16 @@
+=== AquaSoil-AI Advisory Report ===
+Sample      : Field A - Barangay Kilada
+Soil Quality: MODERATE (Confidence: 54%)
+Water Quality: MODERATE (Confidence: 55%)
+
+--- Recommendations ---
+[CRITICAL]  Water turbidity is dangerously high. Do not use for
+            irrigation.
+[WARNING]  Low nitrogen detected. Apply urea fertilizer. Reassess in 2
+           weeks.
+[WARNING]  Low phosphorus detected. Apply phosphate fertilizer.
+[WARNING]  Low potassium detected. Apply potash fertilizer.
+[WARNING]  Soil moisture critically low. Increase irrigation
+           immediately.
+[WARNING]  Low dissolved oxygen in water. Aerate water source if
+           possible.
