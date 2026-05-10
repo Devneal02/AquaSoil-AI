@@ -1,7 +1,11 @@
 import argparse
+import os
 import sys
 import pandas as pd
 import logging
+
+if __package__ in (None, ""):
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.preprocess import PARAMETER_RANGES, validate_inputs
 from src.classifier import classify
@@ -71,7 +75,21 @@ def process_sample(sample_label: str, input_values: dict, debug: bool = False) -
         return None
 
 def main():
-    parser = argparse.ArgumentParser(description="AquaSoil-AI: Intelligent Soil and Water Quality Advisory System")
+    range_lines = "\n".join(
+        f"  - {param}: {min_val} to {max_val}"
+        for param, (min_val, max_val) in PARAMETER_RANGES.items()
+    )
+    parser = argparse.ArgumentParser(
+        description="AquaSoil-AI: Intelligent Soil and Water Quality Advisory System",
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog=(
+            "Required parameters and valid ranges:\n"
+            f"{range_lines}\n\n"
+            "Available flags:\n"
+            "  --batch PATH   Process samples from a CSV file\n"
+            "  --debug        Print fired rule IDs and diagnostic details"
+        ),
+    )
     parser.add_argument('--batch', type=str, help="Path to CSV file for batch processing")
     parser.add_argument('--debug', action='store_true', help="Enable debug logging for rule firing")
     args = parser.parse_args()

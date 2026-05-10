@@ -1,0 +1,6 @@
+Sample,Soil pH,Nitrogen (N),Phosphorus (P),Potassium (K),Soil Moisture,Electrical Conductivity (EC),Water Turbidity,Dissolved Oxygen (DO),Total Dissolved Solids
+Batch_1,4.5,8,4,30,10,6.0,200,2.0,1500
+Batch_2,6.8,120,60,300,50,1.0,15,9.0,250
+Batch_3,5.9,35,18,100,28,2.5,55,5.5,600
+Batch_4,0.0,0,0,0,0,0.0,0,0.0,0
+Batch_5,14.0,500,200,1000,100,10.0,1000,20.0,2000

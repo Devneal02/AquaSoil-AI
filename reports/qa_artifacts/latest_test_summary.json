@@ -1,0 +1,244 @@
+{
+  "results": [
+    {
+      "id": "TC-01",
+      "name": "Valid input",
+      "result": "PASS",
+      "notes": "Validation accepted and classification proceeded.",
+      "output": "{\n  \"sample\": \"TC01_Valid\",\n  \"soil_class\": \"Good\",\n  \"soil_confidence\": 98.5,\n  \"water_class\": \"Good\",\n  \"water_confidence\": 70.0,\n  \"recommendations\": [\n    \"[OK] Soil and water quality are both Good. Safe to plant and irrigate.\"\n  ]\n}"
+    },
+    {
+      "id": "TC-02",
+      "name": "Invalid pH negative",
+      "result": "PASS",
+      "notes": "CLI showed an error, re-prompted, then completed after valid replacement input.",
+      "output": "=== AquaSoil-AI Parameter Input ===\nEnter Sample Label (e.g., 'Field A - Barangay Kilada'): Enter Soil pH (0.0 - 14.0):   [!] Value must be between 0.0 and 14.0. Try again.\nEnter Soil pH (0.0 - 14.0): Enter Nitrogen (N) (0 - 500): Enter Phosphorus (P) (0 - 200): Enter Potassium (K) (0 - 1000): Enter Soil Moisture (0 - 100): Enter Electrical Conductivity (EC) (0 - 10): Enter Water Turbidity (0 - 1000): Enter Dissolved Oxygen (DO) (0 - 20): Enter Total Dissolved Solids (0 - 2000): \n=== AquaSoil-AI Advisory Report ===\nSample      : Interactive_TC-02\nTimestamp   : 2026-05-10 07:35:58\nSoil Quality: GOOD   (Confidence: 98%)\nWater Quality: GOOD  (Confidence: 70%)\n\n--- Recommendations ---\n[OK]  Soil and water quality are both Good. Safe to plant and\n      irrigate.\n\nReport saved: reports\\report_20260510_073558_Interactive_TC_02.txt"
+    },
+    {
+      "id": "TC-03",
+      "name": "Invalid pH too high",
+      "result": "PASS",
+      "notes": "CLI showed an error, re-prompted, then completed after valid replacement input.",
+      "output": "=== AquaSoil-AI Parameter Input ===\nEnter Sample Label (e.g., 'Field A - Barangay Kilada'): Enter Soil pH (0.0 - 14.0):   [!] Value must be between 0.0 and 14.0. Try again.\nEnter Soil pH (0.0 - 14.0): Enter Nitrogen (N) (0 - 500): Enter Phosphorus (P) (0 - 200): Enter Potassium (K) (0 - 1000): Enter Soil Moisture (0 - 100): Enter Electrical Conductivity (EC) (0 - 10): Enter Water Turbidity (0 - 1000): Enter Dissolved Oxygen (DO) (0 - 20): Enter Total Dissolved Solids (0 - 2000): \n=== AquaSoil-AI Advisory Report ===\nSample      : Interactive_TC-03\nTimestamp   : 2026-05-10 07:36:00\nSoil Quality: GOOD   (Confidence: 98%)\nWater Quality: GOOD  (Confidence: 70%)\n\n--- Recommendations ---\n[OK]  Soil and water quality are both Good. Safe to plant and\n      irrigate.\n\nReport saved: reports\\report_20260510_073600_Interactive_TC_03.txt"
+    },
+    {
+      "id": "TC-04",
+      "name": "Non-numeric input",
+      "result": "PASS",
+      "notes": "CLI showed an error, re-prompted, then completed after valid replacement input.",
+      "output": "=== AquaSoil-AI Parameter Input ===\nEnter Sample Label (e.g., 'Field A - Barangay Kilada'): Enter Soil pH (0.0 - 14.0):   [!] Invalid number format. Please enter a numeric value.\nEnter Soil pH (0.0 - 14.0): Enter Nitrogen (N) (0 - 500): Enter Phosphorus (P) (0 - 200): Enter Potassium (K) (0 - 1000): Enter Soil Moisture (0 - 100): Enter Electrical Conductivity (EC) (0 - 10): Enter Water Turbidity (0 - 1000): Enter Dissolved Oxygen (DO) (0 - 20): Enter Total Dissolved Solids (0 - 2000): \n=== AquaSoil-AI Advisory Report ===\nSample      : Interactive_TC-04\nTimestamp   : 2026-05-10 07:36:03\nSoil Quality: GOOD   (Confidence: 98%)\nWater Quality: GOOD  (Confidence: 70%)\n\n--- Recommendations ---\n[OK]  Soil and water quality are both Good. Safe to plant and\n      irrigate.\n\nReport saved: reports\\report_20260510_073603_Interactive_TC_04.txt"
+    },
+    {
+      "id": "TC-05",
+      "name": "Zero values accepted",
+      "result": "PASS",
+      "notes": "All zero values are within configured validation ranges and proceeded to classification.",
+      "output": "{\n  \"sample\": \"TC05_Zero\",\n  \"soil_class\": \"Poor\",\n  \"soil_confidence\": 93.0,\n  \"water_class\": \"Poor\",\n  \"water_confidence\": 87.0,\n  \"recommendations\": [\n    \"[CRITICAL] Soil is highly acidic. Apply agricultural lime. Do not plant until pH reaches 6.0-7.0.\",\n    \"[CRITICAL] Both soil and water quality are Poor. Urgent intervention needed before any farming activity.\",\n    \"[WARNING] Low nitrogen detected. Apply urea fertilizer. Reassess in 2 weeks.\",\n    \"[WARNING] Low phosphorus detected. Apply phosphate fertilizer.\",\n    \"[WARNING] Low potassium detected. Apply potash fertilizer.\",\n    \"[WARNING] Soil moisture critically low. Increase irrigation immediately.\",\n    \"[WARNING] Low dissolved oxygen in water. Aerate water source if possible.\"\n  ]\n}"
+    },
+    {
+      "id": "TC-06",
+      "name": "Boundary maximum values",
+      "result": "PASS",
+      "notes": "Maximum values were accepted and classified.",
+      "output": "{\n  \"sample\": \"TC06_Max\",\n  \"soil_class\": \"Poor\",\n  \"soil_confidence\": 98.5,\n  \"water_class\": \"Poor\",\n  \"water_confidence\": 91.5,\n  \"recommendations\": [\n    \"[CRITICAL] Soil is highly alkaline. Apply sulfur or acidifying agents to lower pH.\",\n    \"[CRITICAL] High electrical conductivity indicates salinity stress. Flush soil with fresh water.\",\n    \"[CRITICAL] Water turbidity is dangerously high. Do not use for irrigation.\",\n    \"[CRITICAL] Both soil and water quality are Poor. Urgent intervention needed before any farming activity.\",\n    \"[WARNING] Soil moisture excessively high. Improve drainage to prevent waterlogging.\",\n    \"[WARNING] High Total Dissolved Solids detected. Consider using an alternative water source.\"\n  ]\n}"
+    },
+    {
+      "id": "TC-07",
+      "name": "Missing CSV column in batch mode",
+      "result": "PASS",
+      "notes": "Batch mode exited gracefully with an informative missing-column error.",
+      "output": "Starting batch mode processing for file: D:\\ai-finals\\AquaSoil-AI\\reports\\qa_artifacts\\tc07_missing_turbidity.csv\n[ERROR] Batch processing failed: \"CSV missing required column: 'Water Turbidity'\""
+    },
+    {
+      "id": "TC-08",
+      "name": "Poor soil and water",
+      "result": "PASS",
+      "notes": "Classification result matched expected class/confidence criteria.",
+      "output": "{\n  \"soil_class\": \"Poor\",\n  \"soil_confidence\": 100.0,\n  \"water_class\": \"Poor\",\n  \"water_confidence\": 99.5\n}"
+    },
+    {
+      "id": "TC-09",
+      "name": "Good soil and water",
+      "result": "PASS",
+      "notes": "Classification result matched expected class/confidence criteria.",
+      "output": "{\n  \"soil_class\": \"Good\",\n  \"soil_confidence\": 100.0,\n  \"water_class\": \"Good\",\n  \"water_confidence\": 99.0\n}"
+    },
+    {
+      "id": "TC-10",
+      "name": "Moderate conditions",
+      "result": "PASS",
+      "notes": "Classification result matched expected class/confidence criteria.",
+      "output": "{\n  \"soil_class\": \"Moderate\",\n  \"soil_confidence\": 100.0,\n  \"water_class\": \"Moderate\",\n  \"water_confidence\": 99.5\n}"
+    },
+    {
+      "id": "TC-11",
+      "name": "Model file missing",
+      "result": "PASS",
+      "notes": "Missing model was caught and shown without a traceback.",
+      "output": "[ERROR] Failed to process sample 'TC11_MissingModel': Model or scaler file missing: models\\aquasoil_model.pkl\nPlease run 'python src/train_model.py' to generate them.\nExpected paths: models/aquasoil_model.pkl, models/scaler.pkl"
+    },
+    {
+      "id": "TC-12",
+      "name": "Scaler file missing",
+      "result": "PASS",
+      "notes": "Missing scaler was caught and shown without a traceback.",
+      "output": "[ERROR] Failed to process sample 'TC12_MissingScaler': Model or scaler file missing: models\\scaler.pkl\nPlease run 'python src/train_model.py' to generate them.\nExpected paths: models/aquasoil_model.pkl, models/scaler.pkl"
+    },
+    {
+      "id": "TC-13",
+      "name": "Model evaluation metrics check",
+      "result": "PASS",
+      "notes": "Training time: 10.703s; parsed gates accuracy=99.89%, macro_f1=1.00, cv_mean=99.97%, cv_std=0.00.",
+      "output": "Loading existing dataset from D:\\ai-finals\\AquaSoil-AI\\data\\soil_water_data.csv\nLoaded 4755 source observations; using 2250 balanced calibration samples for model training.\nScaler saved to D:\\ai-finals\\AquaSoil-AI\\models\\scaler.pkl\n\nTraining Random Forest Models...\n\n--- Evaluating Baselines ---\nDecision Tree Soil Accuracy: 0.99\nk-NN Soil Accuracy: 0.97\n\n--- Random Forest Evaluation ---\n[Soil Model] Accuracy: 1.00\n[Soil Model] Macro Precision: 1.00\n[Soil Model] Macro Recall: 1.00\n[Soil Model] Macro F1-Score: 1.00\n              precision    recall  f1-score   support\n\n        Good       0.99      1.00      1.00       150\n    Moderate       1.00      1.00      1.00       150\n        Poor       1.00      0.99      1.00       150\n\n    accuracy                           1.00       450\n   macro avg       1.00      1.00      1.00       450\nweighted avg       1.00      1.00      1.00       450\n\n[Soil Model] 5-Fold CV Mean Accuracy: 1.00 (+/- 0.00)\n\n[Water Model] Accuracy: 1.00\n[Water Model] Macro Precision: 1.00\n[Water Model] Macro Recall: 1.00\n[Water Model] Macro F1-Score: 1.00\n              precision    recall  f1-score   support\n\n        Good       1.00      1.00      1.00       150\n    Moderate       1.00      1.00      1.00       150\n        Poor       1.00      1.00      1.00       150\n\n    accuracy                           1.00       450\n   macro avg       1.00      1.00      1.\n... [truncated]"
+    },
+    {
+      "id": "TC-14",
+      "name": "Rule count check",
+      "result": "PASS",
+      "notes": "len(RULES)=16.",
+      "output": "len(RULES) = 16"
+    },
+    {
+      "id": "TC-15",
+      "name": "Rule structure validation",
+      "result": "PASS",
+      "notes": "All rules contain id, priority, domain, condition, recommendation, and source.",
+      "output": "[]"
+    },
+    {
+      "id": "TC-16",
+      "name": "Priority field validation",
+      "result": "PASS",
+      "notes": "All priorities are in {1, 2, 3}.",
+      "output": "[]"
+    },
+    {
+      "id": "TC-17",
+      "name": "Recommendation prefix validation",
+      "result": "PASS",
+      "notes": "All recommendations begin with an accepted severity tag.",
+      "output": "[]"
+    },
+    {
+      "id": "TC-18",
+      "name": "Scenario coverage check",
+      "result": "PASS",
+      "notes": "12/12 scenarios covered.",
+      "output": "{\n  \"pH < 5.5 acidic soil\": [\n    \"[CRITICAL] Soil is highly acidic. Apply agricultural lime. Do not plant until pH reaches 6.0-7.0.\"\n  ],\n  \"pH > 8.0 alkaline soil\": [\n    \"[CRITICAL] Soil is highly alkaline. Apply sulfur or acidifying agents to lower pH.\"\n  ],\n  \"N < 20 low nitrogen\": [\n    \"[WARNING] Low nitrogen detected. Apply urea fertilizer. Reassess in 2 weeks.\"\n  ],\n  \"P < 10 low phosphorus\": [\n    \"[WARNING] Low phosphorus detected. Apply phosphate fertilizer.\"\n  ],\n  \"K < 80 low potassium\": [\n    \"[WARNING] Low potassium detected. Apply potash fertilizer.\"\n  ],\n  \"moisture < 20 drought stress\": [\n    \"[WARNING] Soil moisture critically low. Increase irrigation immediately.\"\n  ],\n  \"moisture > 80 waterlogging\": [\n    \"[WARNING] Soil moisture excessively high. Improve drainage to prevent waterlogging.\"\n  ],\n  \"EC > 4 salinity\": [\n    \"[CRITICAL] High electrical conductivity indicates salinity stress. Flush soil with fresh water.\"\n  ],\n  \"turbidity > 100 high turbidity\": [\n    \"[CRITICAL] Water turbidity is dangerously high. Do not use for irrigation.\"\n  ],\n  \"DO < 5 low oxygen\": [\n    \"[WARNING] Low dissolved oxygen in water. Aerate water source if possible.\"\n  ],\n  \"TDS > 1000 high dissolved solids\": [\n    \"[WARNING] High Total Dissolved Solids detected. Consider using an alternative water source.\"\n  ],\n  \"soil_class Good and water_class Good optimal\": [\n    \"[OK] Soi\n... [truncated]"
+    },
+    {
+      "id": "TC-19",
+      "name": "Critical scenario priority order",
+      "result": "PASS",
+      "notes": "Critical recommendations=4; CRITICAL appears before WARNING.",
+      "output": "[CRITICAL] Soil is highly acidic. Apply agricultural lime. Do not plant until pH reaches 6.0-7.0.\n[CRITICAL] High electrical conductivity indicates salinity stress. Flush soil with fresh water.\n[CRITICAL] Water turbidity is dangerously high. Do not use for irrigation.\n[CRITICAL] Both soil and water quality are Poor. Urgent intervention needed before any farming activity.\n[WARNING] Low nitrogen detected. Apply urea fertilizer. Reassess in 2 weeks.\n[WARNING] Low phosphorus detected. Apply phosphate fertilizer.\n[WARNING] Low potassium detected. Apply potash fertilizer.\n[WARNING] Soil moisture critically low. Increase irrigation immediately.\n[WARNING] Low dissolved oxygen in water. Aerate water source if possible.\n[WARNING] High Total Dissolved Solids detected. Consider using an alternative water source."
+    },
+    {
+      "id": "TC-20",
+      "name": "Optimal scenario OK rule",
+      "result": "PASS",
+      "notes": "OK recommendation fired and no CRITICAL recommendation appeared.",
+      "output": "[OK] Soil and water quality are both Good. Safe to plant and irrigate."
+    },
+    {
+      "id": "TC-21",
+      "name": "Missing fact key graceful handling",
+      "result": "PASS",
+      "notes": "Missing keys did not raise KeyError.",
+      "output": "[OK] No specific issues detected. Continue regular monitoring."
+    },
+    {
+      "id": "TC-22",
+      "name": "Empty facts dictionary",
+      "result": "PASS",
+      "notes": "Empty facts returned the default OK message.",
+      "output": "[OK] No specific issues detected. Continue regular monitoring."
+    },
+    {
+      "id": "TC-23",
+      "name": "All rules fire / priority sort check",
+      "result": "PASS",
+      "notes": "10 recommendations fired; priorities sorted as [1, 1, 1, 1, 2, 2, 2, 2, 2, 2].",
+      "output": "[CRITICAL] Soil is highly acidic. Apply agricultural lime. Do not plant until pH reaches 6.0-7.0.\n[CRITICAL] High electrical conductivity indicates salinity stress. Flush soil with fresh water.\n[CRITICAL] Water turbidity is dangerously high. Do not use for irrigation.\n[CRITICAL] Both soil and water quality are Poor. Urgent intervention needed before any farming activity.\n[WARNING] Low nitrogen detected. Apply urea fertilizer. Reassess in 2 weeks.\n[WARNING] Low phosphorus detected. Apply phosphate fertilizer.\n[WARNING] Low potassium detected. Apply potash fertilizer.\n[WARNING] Soil moisture critically low. Increase irrigation immediately.\n[WARNING] Low dissolved oxygen in water. Aerate water source if possible.\n[WARNING] High Total Dissolved Solids detected. Consider using an alternative water source."
+    },
+    {
+      "id": "TC-24",
+      "name": "Non-exclusive multiple rule firing",
+      "result": "PASS",
+      "notes": "3 applicable recommendations fired.",
+      "output": "[CRITICAL] Water turbidity is dangerously high. Do not use for irrigation.\n[WARNING] Low nitrogen detected. Apply urea fertilizer. Reassess in 2 weeks.\n[WARNING] Soil moisture critically low. Increase irrigation immediately."
+    },
+    {
+      "id": "TC-25",
+      "name": "Report file creation",
+      "result": "PASS",
+      "notes": "Created file: report_20260510_073616_TC25_Output.txt.",
+      "output": "=== AquaSoil-AI Advisory Report ===\nSample      : TC25_Output\nTimestamp   : 2026-05-10 07:36:16\nSoil Quality: GOOD   (Confidence: 100%)\nWater Quality: GOOD  (Confidence: 99%)\n\n--- Recommendations ---\n[OK]  Soil and water quality are both Good. Safe to plant and\n      irrigate.\n\nReport saved: reports\\report_20260510_073616_TC25_Output.txt"
+    },
+    {
+      "id": "TC-26",
+      "name": "Report file content check",
+      "result": "PASS",
+      "notes": "Saved report includes sample label, timestamp, classes/confidence, and tagged recommendations.",
+      "output": "=== AquaSoil-AI Advisory Report ===\nSample      : TC25_Output\nTimestamp   : 2026-05-10 07:36:16\nSoil Quality: GOOD   (Confidence: 100%)\nWater Quality: GOOD  (Confidence: 99%)\n\n--- Recommendations ---\n[OK]  Soil and water quality are both Good. Safe to plant and\n      irrigate."
+    },
+    {
+      "id": "TC-27",
+      "name": "CLI output format check",
+      "result": "PASS",
+      "notes": "CLI report structure matched expected sections and saved-path footer.",
+      "output": "=== AquaSoil-AI Advisory Report ===\nSample      : TC25_Output\nTimestamp   : 2026-05-10 07:36:16\nSoil Quality: GOOD   (Confidence: 100%)\nWater Quality: GOOD  (Confidence: 99%)\n\n--- Recommendations ---\n[OK]  Soil and water quality are both Good. Safe to plant and\n      irrigate.\n\nReport saved: reports\\report_20260510_073616_TC25_Output.txt"
+    },
+    {
+      "id": "TC-28",
+      "name": "Batch mode summary table",
+      "result": "PASS",
+      "notes": "Batch exit code=0; new reports=5.",
+      "output": "Starting batch mode processing for file: D:\\ai-finals\\AquaSoil-AI\\reports\\qa_artifacts\\tc28_batch_5.csv\n\n=== AquaSoil-AI Advisory Report ===\nSample      : Batch_1\nTimestamp   : 2026-05-10 07:36:18\nSoil Quality: POOR   (Confidence: 100%)\nWater Quality: POOR  (Confidence: 100%)\n\n--- Recommendations ---\n[CRITICAL]  Soil is highly acidic. Apply agricultural lime. Do not\n            plant until pH reaches 6.0-7.0.\n[CRITICAL]  High electrical conductivity indicates salinity stress.\n            Flush soil with fresh water.\n[CRITICAL]  Water turbidity is dangerously high. Do not use for\n            irrigation.\n[CRITICAL]  Both soil and water quality are Poor. Urgent intervention\n            needed before any farming activity.\n[WARNING]  Low nitrogen detected. Apply urea fertilizer. Reassess in 2\n           weeks.\n[WARNING]  Low phosphorus detected. Apply phosphate fertilizer.\n[WARNING]  Low potassium detected. Apply potash fertilizer.\n[WARNING]  Soil moisture critically low. Increase irrigation\n           immediately.\n[WARNING]  Low dissolved oxygen in water. Aerate water source if\n           possible.\n[WARNING]  High Total Dissolved Solids detected. Consider using an\n           alternative water source.\n\nReport saved: reports\\report_20260510_073618_Batch_1.txt\n\n\n=== AquaSoil-AI Advisory Report ===\nSample      : Batch_2\nTimestamp   : 2026-05-10 07:36:18\nSoil Quality: GOOD   (Confidence\n... [truncated]"
+    },
+    {
+      "id": "TC-29",
+      "name": "Full pipeline Poor conditions",
+      "result": "PASS",
+      "notes": "Result={'sample': 'TC-29_Sample', 'soil_class': 'Poor', 'soil_confidence': 100.0, 'water_class': 'Poor', 'water_confidence': 99.5, 'recommendations': ['[CRITICAL] Soil is highly acidic. Apply agricultural lime. Do not plant until pH reaches 6.0-7.0.', '[CRITICAL] High electrical conductivity indicates salinity stress. Flush soil with fresh water.', '[CRITICAL] Water turbidity is dangerously high. Do not use for irrigation.', '[CRITICAL] Both soil and water quality are Poor. Urgent intervention needed before any farming activity.', '[WARNING] Low nitrogen detected. Apply urea fertilizer. Reassess in 2 weeks.', '[WARNING] Low phosphorus detected. Apply phosphate fertilizer.', '[WARNING] Low potassium detected. Apply potash fertilizer.', '[WARNING] Soil moisture critically low. Increase irrigation immediately.', '[WARNING] Low dissolved oxygen in water. Aerate water source if possible.', '[WARNING] High Total Dissolved Solids detected. Consider using an alternative water source.']}; new reports=1.",
+      "output": "=== AquaSoil-AI Advisory Report ===\nSample      : TC-29_Sample\nTimestamp   : 2026-05-10 07:36:19\nSoil Quality: POOR   (Confidence: 100%)\nWater Quality: POOR  (Confidence: 100%)\n\n--- Recommendations ---\n[CRITICAL]  Soil is highly acidic. Apply agricultural lime. Do not\n            plant until pH reaches 6.0-7.0.\n[CRITICAL]  High electrical conductivity indicates salinity stress.\n            Flush soil with fresh water.\n[CRITICAL]  Water turbidity is dangerously high. Do not use for\n            irrigation.\n[CRITICAL]  Both soil and water quality are Poor. Urgent intervention\n            needed before any farming activity.\n[WARNING]  Low nitrogen detected. Apply urea fertilizer. Reassess in 2\n           weeks.\n[WARNING]  Low phosphorus detected. Apply phosphate fertilizer.\n[WARNING]  Low potassium detected. Apply potash fertilizer.\n[WARNING]  Soil moisture critically low. Increase irrigation\n           immediately.\n[WARNING]  Low dissolved oxygen in water. Aerate water source if\n           possible.\n[WARNING]  High Total Dissolved Solids detected. Consider using an\n           alternative water source.\n\nReport saved: reports\\report_20260510_073619_TC_29_Sample.txt"
+    },
+    {
+      "id": "TC-30",
+      "name": "Full pipeline Good conditions",
+      "result": "PASS",
+      "notes": "Result={'sample': 'TC-30_Sample', 'soil_class': 'Good', 'soil_confidence': 100.0, 'water_class': 'Good', 'water_confidence': 99.5, 'recommendations': ['[OK] Soil and water quality are both Good. Safe to plant and irrigate.']}; new reports=1.",
+      "output": "=== AquaSoil-AI Advisory Report ===\nSample      : TC-30_Sample\nTimestamp   : 2026-05-10 07:36:19\nSoil Quality: GOOD   (Confidence: 100%)\nWater Quality: GOOD  (Confidence: 100%)\n\n--- Recommendations ---\n[OK]  Soil and water quality are both Good. Safe to plant and\n      irrigate.\n\nReport saved: reports\\report_20260510_073619_TC_30_Sample.txt"
+    },
+    {
+      "id": "TC-31",
+      "name": "--help flag test",
+      "result": "PASS",
+      "notes": "Help listed usage, all 9 parameters/ranges, and flags.",
+      "output": "usage: main.py [-h] [--batch BATCH] [--debug]\n\nAquaSoil-AI: Intelligent Soil and Water Quality Advisory System\n\noptions:\n  -h, --help     show this help message and exit\n  --batch BATCH  Path to CSV file for batch processing\n  --debug        Enable debug logging for rule firing\n\nRequired parameters and valid ranges:\n  - Soil pH: 0.0 to 14.0\n  - Nitrogen (N): 0 to 500\n  - Phosphorus (P): 0 to 200\n  - Potassium (K): 0 to 1000\n  - Soil Moisture: 0 to 100\n  - Electrical Conductivity (EC): 0 to 10\n  - Water Turbidity: 0 to 1000\n  - Dissolved Oxygen (DO): 0 to 20\n  - Total Dissolved Solids: 0 to 2000\n\nAvailable flags:\n  --batch PATH   Process samples from a CSV file\n  --debug        Print fired rule IDs and diagnostic details"
+    },
+    {
+      "id": "TC-32",
+      "name": "--debug flag test",
+      "result": "PASS",
+      "notes": "Debug output included fired rule IDs alongside the advisory.",
+      "output": "=== AquaSoil-AI Parameter Input ===\nEnter Sample Label (e.g., 'Field A - Barangay Kilada'): Enter Soil pH (0.0 - 14.0): Enter Nitrogen (N) (0 - 500): Enter Phosphorus (P) (0 - 200): Enter Potassium (K) (0 - 1000): Enter Soil Moisture (0 - 100): Enter Electrical Conductivity (EC) (0 - 10): Enter Water Turbidity (0 - 1000): Enter Dissolved Oxygen (DO) (0 - 20): Enter Total Dissolved Solids (0 - 2000): [DEBUG] Fired rules: R01, R09, R11, R15, R04, R05, R06, R07, R12, R13\n\n=== AquaSoil-AI Advisory Report ===\nSample      : DebugSample\nTimestamp   : 2026-05-10 07:36:22\nSoil Quality: POOR   (Confidence: 100%)\nWater Quality: POOR  (Confidence: 100%)\n\n--- Recommendations ---\n[CRITICAL]  Soil is highly acidic. Apply agricultural lime. Do not\n            plant until pH reaches 6.0-7.0.\n[CRITICAL]  High electrical conductivity indicates salinity stress.\n            Flush soil with fresh water.\n[CRITICAL]  Water turbidity is dangerously high. Do not use for\n            irrigation.\n[CRITICAL]  Both soil and water quality are Poor. Urgent intervention\n            needed before any farming activity.\n[WARNING]  Low nitrogen detected. Apply urea fertilizer. Reassess in 2\n           weeks.\n[WARNING]  Low phosphorus detected. Apply phosphate fertilizer.\n[WARNING]  Low potassium detected. Apply potash fertilizer.\n[WARNING]  Soil moisture critically low. Increase irrigation\n           immediately.\n[\n... [truncated]"
+    },
+    {
+      "id": "TC-33",
+      "name": "Performance response time",
+      "result": "PASS",
+      "notes": "Single sample pipeline time=0.1321s.",
+      "output": "=== AquaSoil-AI Advisory Report ===\nSample      : TC33_Perf\nTimestamp   : 2026-05-10 07:36:22\nSoil Quality: GOOD   (Confidence: 100%)\nWater Quality: GOOD  (Confidence: 99%)\n\n--- Recommendations ---\n[OK]  Soil and water quality are both Good. Safe to plant and\n      irrigate.\n\nReport saved: reports\\report_20260510_073622_TC33_Perf.txt"
+    }
+  ],
+  "performance": {
+    "model_training_time": 10.702890899963677,
+    "single_sample_inference": 0.13209999998798594,
+    "ml_accuracy": 99.89,
+    "ml_macro_f1": 1.0,
+    "rules_count": 16,
+    "tc23_rules_fired": 10
+  },
+  "report_path": "D:\\ai-finals\\AquaSoil-AI\\reports\\aquasoil_test_report_20260510_073622.md"
+}

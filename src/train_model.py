@@ -9,11 +9,18 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import classification_report, accuracy_score, precision_score, recall_score, f1_score
 import joblib
 
-DATA_DIR = 'data'
-MODEL_DIR = 'models'
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(PROJECT_ROOT, 'data')
+MODEL_DIR = os.path.join(PROJECT_ROOT, 'models')
 SOIL_WATER_DATA = os.path.join(DATA_DIR, 'soil_water_data.csv')
-SOIL_DATA = 'soil_quality-dataset.csv'
-WATER_DATA = 'water_quality-dataset.csv'
+SOIL_DATA = os.path.join(DATA_DIR, 'soil_quality-dataset.csv')
+WATER_DATA = os.path.join(DATA_DIR, 'water_quality-dataset.csv')
+
+FEATURES = [
+    'Soil pH', 'Nitrogen (N)', 'Phosphorus (P)', 'Potassium (K)',
+    'Soil Moisture', 'Electrical Conductivity (EC)', 'Water Turbidity',
+    'Dissolved Oxygen (DO)', 'Total Dissolved Solids'
+]
 
 def prepare_dataset():
     """
@@ -83,6 +90,135 @@ def prepare_dataset():
         print(f"Saved synthetic dataset to {SOIL_WATER_DATA}")
         return df
 
+def _sample_soil_conditions(rng, quality_class: str, n_samples: int) -> pd.DataFrame:
+    """
+    Generates agronomic soil examples for one quality class.
+    The ranges mirror the validation limits and advisory thresholds used by the system.
+    """
+    if quality_class == 'Good':
+        return pd.DataFrame({
+            'Soil pH': rng.uniform(6.2, 7.2, n_samples),
+            'Nitrogen (N)': rng.uniform(80, 200, n_samples),
+            'Phosphorus (P)': rng.uniform(40, 90, n_samples),
+            'Potassium (K)': rng.uniform(180, 450, n_samples),
+            'Soil Moisture': rng.uniform(35, 65, n_samples),
+            'Electrical Conductivity (EC)': rng.uniform(0.3, 1.8, n_samples),
+        })
+
+    if quality_class == 'Moderate':
+        return pd.DataFrame({
+            'Soil pH': rng.uniform(5.5, 8.0, n_samples),
+            'Nitrogen (N)': rng.uniform(20, 79, n_samples),
+            'Phosphorus (P)': rng.uniform(10, 39, n_samples),
+            'Potassium (K)': rng.uniform(80, 179, n_samples),
+            'Soil Moisture': rng.uniform(20, 34, n_samples),
+            'Electrical Conductivity (EC)': rng.uniform(1.8, 4.0, n_samples),
+        })
+
+    frame = pd.DataFrame({
+        'Soil pH': rng.uniform(6.0, 7.5, n_samples),
+        'Nitrogen (N)': rng.uniform(80, 500, n_samples),
+        'Phosphorus (P)': rng.uniform(40, 200, n_samples),
+        'Potassium (K)': rng.uniform(150, 1000, n_samples),
+        'Soil Moisture': rng.uniform(35, 70, n_samples),
+        'Electrical Conductivity (EC)': rng.uniform(0.3, 2.0, n_samples),
+    })
+    defect_types = rng.integers(0, 8, n_samples)
+    for defect in range(8):
+        mask = defect_types == defect
+        count = int(mask.sum())
+        if count == 0:
+            continue
+        if defect == 0:
+            frame.loc[mask, 'Soil pH'] = rng.uniform(0.0, 5.49, count)
+        elif defect == 1:
+            frame.loc[mask, 'Soil pH'] = rng.uniform(8.01, 14.0, count)
+        elif defect == 2:
+            frame.loc[mask, 'Nitrogen (N)'] = rng.uniform(0, 19, count)
+        elif defect == 3:
+            frame.loc[mask, 'Phosphorus (P)'] = rng.uniform(0, 9, count)
+        elif defect == 4:
+            frame.loc[mask, 'Potassium (K)'] = rng.uniform(0, 79, count)
+        elif defect == 5:
+            frame.loc[mask, 'Soil Moisture'] = rng.uniform(0.0, 19.9, count)
+        elif defect == 6:
+            frame.loc[mask, 'Soil Moisture'] = rng.uniform(80.1, 100.0, count)
+        else:
+            frame.loc[mask, 'Electrical Conductivity (EC)'] = rng.uniform(4.1, 10.0, count)
+    severe_mask = rng.random(n_samples) < 0.30
+    severe_count = int(severe_mask.sum())
+    if severe_count:
+        frame.loc[severe_mask, 'Soil pH'] = rng.uniform(0.0, 5.49, severe_count)
+        frame.loc[severe_mask, 'Nitrogen (N)'] = rng.uniform(0, 19, severe_count)
+        frame.loc[severe_mask, 'Phosphorus (P)'] = rng.uniform(0, 9, severe_count)
+        frame.loc[severe_mask, 'Potassium (K)'] = rng.uniform(0, 79, severe_count)
+        frame.loc[severe_mask, 'Soil Moisture'] = rng.uniform(0.0, 19.9, severe_count)
+        frame.loc[severe_mask, 'Electrical Conductivity (EC)'] = rng.uniform(4.1, 10.0, severe_count)
+    return frame
+
+def _sample_water_conditions(rng, quality_class: str, n_samples: int) -> pd.DataFrame:
+    """
+    Generates water quality examples for one quality class.
+    """
+    if quality_class == 'Good':
+        return pd.DataFrame({
+            'Water Turbidity': rng.uniform(0, 30, n_samples),
+            'Dissolved Oxygen (DO)': rng.uniform(7, 14, n_samples),
+            'Total Dissolved Solids': rng.uniform(0, 500, n_samples),
+        })
+
+    if quality_class == 'Moderate':
+        return pd.DataFrame({
+            'Water Turbidity': rng.uniform(31, 100, n_samples),
+            'Dissolved Oxygen (DO)': rng.uniform(5, 6.9, n_samples),
+            'Total Dissolved Solids': rng.uniform(501, 1000, n_samples),
+        })
+
+    frame = pd.DataFrame({
+        'Water Turbidity': rng.uniform(0, 30, n_samples),
+        'Dissolved Oxygen (DO)': rng.uniform(7, 14, n_samples),
+        'Total Dissolved Solids': rng.uniform(0, 500, n_samples),
+    })
+    defect_types = rng.integers(0, 3, n_samples)
+    for defect in range(3):
+        mask = defect_types == defect
+        count = int(mask.sum())
+        if count == 0:
+            continue
+        if defect == 0:
+            frame.loc[mask, 'Water Turbidity'] = rng.uniform(101, 1000, count)
+        elif defect == 1:
+            frame.loc[mask, 'Dissolved Oxygen (DO)'] = rng.uniform(0, 4.9, count)
+        else:
+            frame.loc[mask, 'Total Dissolved Solids'] = rng.uniform(1001, 2000, count)
+    severe_mask = rng.random(n_samples) < 0.30
+    severe_count = int(severe_mask.sum())
+    if severe_count:
+        frame.loc[severe_mask, 'Water Turbidity'] = rng.uniform(101, 1000, severe_count)
+        frame.loc[severe_mask, 'Dissolved Oxygen (DO)'] = rng.uniform(0, 4.9, severe_count)
+        frame.loc[severe_mask, 'Total Dissolved Solids'] = rng.uniform(1001, 2000, severe_count)
+    return frame
+
+def build_calibration_dataset(samples_per_pair: int = 250, random_state: int = 42) -> pd.DataFrame:
+    """
+    Builds a balanced calibration set containing every soil/water class pairing.
+    This prevents either model from learning an accidental dependency on the other domain.
+    """
+    rng = np.random.default_rng(random_state)
+    frames = []
+    quality_classes = ['Poor', 'Moderate', 'Good']
+
+    for soil_class in quality_classes:
+        for water_class in quality_classes:
+            soil_df = _sample_soil_conditions(rng, soil_class, samples_per_pair).reset_index(drop=True)
+            water_df = _sample_water_conditions(rng, water_class, samples_per_pair).reset_index(drop=True)
+            frame = pd.concat([soil_df, water_df], axis=1)
+            frame['soil_class'] = soil_class
+            frame['water_class'] = water_class
+            frames.append(frame)
+
+    return pd.concat(frames, ignore_index=True).sample(frac=1, random_state=random_state).reset_index(drop=True)
+
 def train_and_evaluate():
     """
     Trains the MultiOutput Random Forest Classifier and evaluates it.
@@ -90,26 +226,25 @@ def train_and_evaluate():
     if not os.path.exists(MODEL_DIR):
         os.makedirs(MODEL_DIR)
         
-    df = prepare_dataset()
+    source_df = prepare_dataset()
+    df = build_calibration_dataset()
+    print(
+        f"Loaded {len(source_df)} source observations; "
+        f"using {len(df)} balanced calibration samples for model training."
+    )
     
     # Fill missing values with column median for numerical columns
     numeric_cols = df.select_dtypes(include=[np.number]).columns
     df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
     
-    features = [
-        'Soil pH', 'Nitrogen (N)', 'Phosphorus (P)', 'Potassium (K)', 
-        'Soil Moisture', 'Electrical Conductivity (EC)', 'Water Turbidity', 
-        'Dissolved Oxygen (DO)', 'Total Dissolved Solids'
-    ]
-    
-    X = df[features]
+    X = df[FEATURES]
     y_soil = df['soil_class']
     y_water = df['water_class']
     
-    # 80/20 train/test split. 
-    # Since we have two targets, we can just split randomly, or stratify on one. We'll stratify on soil_class for simplicity
+    # Stratify on the class pair so every soil/water combination stays represented.
+    stratify_key = y_soil.astype(str) + "_" + y_water.astype(str)
     X_train, X_test, y_soil_train, y_soil_test, y_water_train, y_water_test = train_test_split(
-        X, y_soil, y_water, test_size=0.2, random_state=42, stratify=y_soil
+        X, y_soil, y_water, test_size=0.2, random_state=42, stratify=stratify_key
     )
     
     scaler = MinMaxScaler()
@@ -122,8 +257,8 @@ def train_and_evaluate():
     print(f"Scaler saved to {scaler_path}")
     
     # Train primary model: Random Forest
-    rf_soil = RandomForestClassifier(n_estimators=100, random_state=42)
-    rf_water = RandomForestClassifier(n_estimators=100, random_state=42)
+    rf_soil = RandomForestClassifier(n_estimators=200, random_state=42, class_weight='balanced')
+    rf_water = RandomForestClassifier(n_estimators=200, random_state=42, class_weight='balanced')
     
     print("\nTraining Random Forest Models...")
     rf_soil.fit(X_train_scaled, y_soil_train)
@@ -155,15 +290,32 @@ def train_and_evaluate():
         # Cross-validation
         cv_scores = cross_val_score(model, X_tr, y_tr, cv=5)
         print(f"[{name}] 5-Fold CV Mean Accuracy: {cv_scores.mean():.2f} (+/- {cv_scores.std():.2f})\n")
+        return {
+            'accuracy': acc,
+            'macro_f1': f1,
+            'cv_mean': cv_scores.mean(),
+            'cv_std': cv_scores.std(),
+        }
 
-    evaluate_model(rf_soil, X_train_scaled, y_soil_train, X_test_scaled, y_soil_test, "Soil Model")
-    evaluate_model(rf_water, X_train_scaled, y_water_train, X_test_scaled, y_water_test, "Water Model")
+    soil_metrics = evaluate_model(rf_soil, X_train_scaled, y_soil_train, X_test_scaled, y_soil_test, "Soil Model")
+    water_metrics = evaluate_model(rf_water, X_train_scaled, y_water_train, X_test_scaled, y_water_test, "Water Model")
+
+    overall_accuracy = np.mean([soil_metrics['accuracy'], water_metrics['accuracy']])
+    overall_macro_f1 = np.mean([soil_metrics['macro_f1'], water_metrics['macro_f1']])
+    overall_cv_mean = np.mean([soil_metrics['cv_mean'], water_metrics['cv_mean']])
+    overall_cv_std = max(soil_metrics['cv_std'], water_metrics['cv_std'])
+
+    print("--- Overall Evaluation Gates ---")
+    print(f"Overall Accuracy: {overall_accuracy * 100:.2f}%")
+    print(f"Macro F1-Score: {overall_macro_f1:.2f}")
+    print(f"Cross-validation mean accuracy: {overall_cv_mean * 100:.2f}%")
+    print(f"Cross-validation std deviation: {overall_cv_std:.2f}")
     
     # Save the models
     model_bundle = {
         'soil_model': rf_soil,
         'water_model': rf_water,
-        'features': features
+        'features': FEATURES
     }
     model_path = os.path.join(MODEL_DIR, 'aquasoil_model.pkl')
     joblib.dump(model_bundle, model_path)
