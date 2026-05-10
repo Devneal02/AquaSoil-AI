@@ -1,0 +1,19 @@
+=== AquaSoil-AI Advisory Report ===
+Sample      : Batch_5
+Timestamp   : 2026-05-10 07:36:19
+Soil Quality: POOR   (Confidence: 98%)
+Water Quality: POOR  (Confidence: 92%)
+
+--- Recommendations ---
+[CRITICAL]  Soil is highly alkaline. Apply sulfur or acidifying agents
+            to lower pH.
+[CRITICAL]  High electrical conductivity indicates salinity stress.
+            Flush soil with fresh water.
+[CRITICAL]  Water turbidity is dangerously high. Do not use for
+            irrigation.
+[CRITICAL]  Both soil and water quality are Poor. Urgent intervention
+            needed before any farming activity.
+[WARNING]  Soil moisture excessively high. Improve drainage to prevent
+           waterlogging.
+[WARNING]  High Total Dissolved Solids detected. Consider using an
+           alternative water source.

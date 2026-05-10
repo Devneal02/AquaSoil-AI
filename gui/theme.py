@@ -137,9 +137,9 @@ OPTIMAL_RANGES = {
 }
 
 TEAM_MEMBERS = [
-    "Team Member 1",
-    "Team Member 2",
-    "Team Member 3",
+    "Babagonio, Philip Neel",
+    "Sabando, Nelann Llyod",
+    "Demillo, Adrian Michael",
 ]
 
 STATUS_READY = "Ready"

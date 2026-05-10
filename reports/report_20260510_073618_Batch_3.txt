@@ -1,0 +1,11 @@
+=== AquaSoil-AI Advisory Report ===
+Sample      : Batch_3
+Timestamp   : 2026-05-10 07:36:18
+Soil Quality: MODERATE (Confidence: 100%)
+Water Quality: MODERATE (Confidence: 100%)
+
+--- Recommendations ---
+[WARNING]  Soil is slightly acidic. Consider applying a moderate
+           amount of lime before the next planting season.
+[WARNING]  Water turbidity is elevated. Filter before use for
+           irrigation.

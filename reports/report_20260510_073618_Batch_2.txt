@@ -1,0 +1,9 @@
+=== AquaSoil-AI Advisory Report ===
+Sample      : Batch_2
+Timestamp   : 2026-05-10 07:36:18
+Soil Quality: GOOD   (Confidence: 100%)
+Water Quality: GOOD  (Confidence: 99%)
+
+--- Recommendations ---
+[OK]  Soil and water quality are both Good. Safe to plant and
+      irrigate.

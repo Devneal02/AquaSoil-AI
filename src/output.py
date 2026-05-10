@@ -2,7 +2,8 @@ import os
 from datetime import datetime
 import textwrap
 
-REPORTS_DIR = 'reports'
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPORTS_DIR = os.path.join(PROJECT_ROOT, 'reports')
 
 def _ensure_report_dir():
     if not os.path.exists(REPORTS_DIR):
@@ -18,10 +19,12 @@ def print_advisory(sample_label: str, classification_result: dict, recommendatio
     soil_conf = classification_result['soil_confidence']
     water_cls = classification_result['water_class'].upper()
     water_conf = classification_result['water_confidence']
+    generated_at = datetime.now()
     
     report_lines = []
     report_lines.append("=== AquaSoil-AI Advisory Report ===")
     report_lines.append(f"Sample      : {sample_label}")
+    report_lines.append(f"Timestamp   : {generated_at.strftime('%Y-%m-%d %H:%M:%S')}")
     report_lines.append(f"Soil Quality: {soil_cls:<6} (Confidence: {soil_conf:.0f}%)")
     report_lines.append(f"Water Quality: {water_cls:<5} (Confidence: {water_conf:.0f}%)")
     report_lines.append("\n--- Recommendations ---")
@@ -42,16 +45,22 @@ def print_advisory(sample_label: str, classification_result: dict, recommendatio
     report_text = "\n".join(report_lines)
     
     # Save report
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = generated_at.strftime("%Y%m%d_%H%M%S")
     # Clean label for filename if provided
     safe_label = "".join(c if c.isalnum() else "_" for c in sample_label.split(" - ")[0])
-    filename = f"report_{safe_label}_{timestamp}.txt"
+    filename = f"report_{timestamp}_{safe_label}.txt"
     filepath = os.path.join(REPORTS_DIR, filename)
+    counter = 2
+    while os.path.exists(filepath):
+        filename = f"report_{timestamp}_{safe_label}_{counter}.txt"
+        filepath = os.path.join(REPORTS_DIR, filename)
+        counter += 1
     
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(report_text)
         
-    report_text += f"\n\nReport saved: {filepath}\n"
+    display_path = os.path.relpath(filepath, PROJECT_ROOT)
+    report_text += f"\n\nReport saved: {display_path}\n"
     
     print("\n" + report_text)
 

@@ -10,12 +10,14 @@ def get_recommendations(facts: dict, debug: bool = False) -> list[str]:
     sorted_rules = sorted(RULES, key=lambda r: r['priority'])
     
     recommendations = []
+    fired_rule_ids = []
     
     for rule in sorted_rules:
         try:
             # Evaluate the rule's lambda condition
             if rule['condition'](facts):
                 recommendations.append(rule['recommendation'])
+                fired_rule_ids.append(rule['id'])
                 if debug:
                     logging.debug(f"Rule Fired: {rule['id']} - Priority: {rule['priority']}")
         except (KeyError, TypeError) as e:
@@ -27,5 +29,9 @@ def get_recommendations(facts: dict, debug: bool = False) -> list[str]:
     # Default message if no rules fire
     if not recommendations:
         recommendations.append("[OK] No specific issues detected. Continue regular monitoring.")
+
+    if debug:
+        fired_summary = ", ".join(fired_rule_ids) if fired_rule_ids else "None"
+        print(f"[DEBUG] Fired rules: {fired_summary}")
         
     return recommendations

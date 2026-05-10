@@ -1,0 +1,25 @@
+=== AquaSoil-AI Advisory Report ===
+Sample      : Batch_1
+Timestamp   : 2026-05-10 07:36:18
+Soil Quality: POOR   (Confidence: 100%)
+Water Quality: POOR  (Confidence: 100%)
+
+--- Recommendations ---
+[CRITICAL]  Soil is highly acidic. Apply agricultural lime. Do not
+            plant until pH reaches 6.0-7.0.
+[CRITICAL]  High electrical conductivity indicates salinity stress.
+            Flush soil with fresh water.
+[CRITICAL]  Water turbidity is dangerously high. Do not use for
+            irrigation.
+[CRITICAL]  Both soil and water quality are Poor. Urgent intervention
+            needed before any farming activity.
+[WARNING]  Low nitrogen detected. Apply urea fertilizer. Reassess in 2
+           weeks.
+[WARNING]  Low phosphorus detected. Apply phosphate fertilizer.
+[WARNING]  Low potassium detected. Apply potash fertilizer.
+[WARNING]  Soil moisture critically low. Increase irrigation
+           immediately.
+[WARNING]  Low dissolved oxygen in water. Aerate water source if
+           possible.
+[WARNING]  High Total Dissolved Solids detected. Consider using an
+           alternative water source.

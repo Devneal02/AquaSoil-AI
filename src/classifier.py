@@ -3,19 +3,22 @@ import joblib
 import pandas as pd
 import numpy as np
 
-MODEL_PATH = os.path.join('models', 'aquasoil_model.pkl')
-SCALER_PATH = os.path.join('models', 'scaler.pkl')
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODEL_PATH = os.path.join(PROJECT_ROOT, 'models', 'aquasoil_model.pkl')
+SCALER_PATH = os.path.join(PROJECT_ROOT, 'models', 'scaler.pkl')
 
 def _load_model_and_scaler():
     """
     Loads the trained models and scaler.
     Raises FileNotFoundError with clear instructions if missing.
     """
-    if not os.path.exists(MODEL_PATH) or not os.path.exists(SCALER_PATH):
+    missing_paths = [path for path in (MODEL_PATH, SCALER_PATH) if not os.path.exists(path)]
+    if missing_paths:
+        missing_display = ", ".join(os.path.relpath(path, PROJECT_ROOT) for path in missing_paths)
         raise FileNotFoundError(
-            f"Model or scaler file missing.\n"
+            f"Model or scaler file missing: {missing_display}\n"
             f"Please run 'python src/train_model.py' to generate them.\n"
-            f"Expected paths: {MODEL_PATH}, {SCALER_PATH}"
+            f"Expected paths: models/aquasoil_model.pkl, models/scaler.pkl"
         )
     model_bundle = joblib.load(MODEL_PATH)
     scaler = joblib.load(SCALER_PATH)
@@ -39,10 +42,10 @@ def classify(input_values: dict) -> dict:
     rf_water = model_bundle['water_model']
     
     # Ensure order matches training
-    data = [input_values[f] for f in features]
+    data = pd.DataFrame([[input_values[f] for f in features]], columns=features)
     
     # Scale data
-    scaled_data = scaler.transform([data])
+    scaled_data = scaler.transform(data)
     
     # Predict soil
     soil_pred = rf_soil.predict(scaled_data)[0]
