@@ -26,6 +26,11 @@ To process a single sample interactively, run:
 ```bash
 python src/main.py
 ```
+or 
+```bash
+python gui/app.py
+```
+to run it with GUI
 You will be prompted to enter a sample label and values for the 9 parameters.
 
 ### Batch Mode
