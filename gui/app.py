@@ -27,6 +27,7 @@ from gui.tabs.about_tab import AboutTab
 from gui.tabs.history_tab import HistoryTab
 from gui.tabs.input_tab import InputTab
 from gui.tabs.results_tab import ResultsTab
+from gui.database import delete_all, init_db, load_all, save_analysis
 from gui.theme import (
     COLOR_BACKGROUND,
     COLOR_CARD_BG,
@@ -60,7 +61,8 @@ class AquaSoilApp(ttk.Window):
     def __init__(self) -> None:
         """Initialize the window, notebook tabs, and shared state."""
         super().__init__(themename=THEME_NAME)
-        self.history: list[dict[str, Any]] = []
+        init_db()
+        self.history: list[dict[str, Any]] = load_all()
         self.rule_count = len(RULES)
         self.title("AquaSoil-AI — Soil & Water Advisor")
         self.geometry("960x720")
@@ -99,6 +101,9 @@ class AquaSoilApp(ttk.Window):
         self.notebook.add(self.results_tab, text="📊 Results")
         self.notebook.add(self.history_tab, text="📋 History")
         self.notebook.add(self.about_tab, text="ℹ️ About")
+
+        self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
+        self.history_tab.refresh(self.history)
 
         self.status_var = tk.StringVar(value=STATUS_READY)
         self.status_bar = ttk.Label(
@@ -177,13 +182,19 @@ class AquaSoilApp(ttk.Window):
         }
 
     def add_history_result(self, result: dict[str, Any]) -> None:
-        """Add one analysis result to session history and refresh the table."""
-        self.history.append(result)
+        """Persist one analysis result and refresh the history table."""
+        save_analysis(result)
+        self.reload_history()
+
+    def reload_history(self) -> None:
+        """Load persisted analyses and refresh the history table."""
+        self.history = load_all()
         self.history_tab.refresh(self.history)
 
     def clear_history(self) -> None:
-        """Clear all session history rows."""
-        self.history.clear()
+        """Clear all persisted history rows."""
+        delete_all()
+        self.history = []
         self.history_tab.refresh(self.history)
         self.set_status_ready()
 
@@ -194,13 +205,19 @@ class AquaSoilApp(ttk.Window):
 
     def show_history(self) -> None:
         """Refresh and select the History tab."""
-        self.history_tab.refresh(self.history)
+        self.reload_history()
         self.notebook.select(self.history_tab)
 
     def load_history_result(self, index: int) -> None:
         """Load a selected history result into the Results tab."""
         if 0 <= index < len(self.history):
             self.show_results(self.history[index])
+
+    def _on_tab_changed(self, _event: tk.Event) -> None:
+        """Reload persistent history whenever the History tab is opened."""
+        selected_widget = self.notebook.nametowidget(self.notebook.select())
+        if selected_widget is self.history_tab:
+            self.reload_history()
 
     def safe_report_filename(self, sample_label: str) -> str:
         """Return a safe default report filename for a sample."""

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import csv
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +10,7 @@ from tkinter import filedialog, messagebox
 
 import ttkbootstrap as ttk
 
+from gui.database import export_csv
 from gui.theme import (
     COLOR_TEXT_MUTED,
     COLOR_TEXT_PRIMARY,
@@ -20,7 +20,6 @@ from gui.theme import (
     PADDING_LARGE,
     PADDING_MEDIUM,
     PADDING_SMALL,
-    PARAMETER_ORDER,
     ROW_BACKGROUNDS,
 )
 
@@ -141,14 +140,14 @@ class HistoryTab(ttk.Frame):
             return
         confirmed = messagebox.askyesno(
             "Clear history",
-            "Clear all analyses from the current session?",
+            "Clear all saved analyses from history?",
             parent=self.winfo_toplevel(),
         )
         if confirmed:
             self.app.clear_history()
 
     def export_history(self) -> None:
-        """Export current session history as a CSV file."""
+        """Export persistent history as a CSV file."""
         if not self.app.history:
             messagebox.showinfo("History empty", "There are no analyses to export.", parent=self.winfo_toplevel())
             return
@@ -162,39 +161,8 @@ class HistoryTab(ttk.Frame):
         if not path:
             return
 
-        self._write_history_csv(Path(path), self.app.history)
-        messagebox.showinfo("History exported", "The current session history was exported.", parent=self.winfo_toplevel())
-
-    def _write_history_csv(self, path: Path, history: list[dict[str, Any]]) -> None:
-        """Write history records to a CSV file."""
-        columns = [
-            "#",
-            "Timestamp",
-            "Sample Label",
-            "Soil",
-            "Soil Confidence",
-            "Water",
-            "Water Confidence",
-            "Recommendations",
-        ]
-        columns.extend(PARAMETER_ORDER)
-
-        with path.open("w", encoding="utf-8", newline="") as file:
-            writer = csv.DictWriter(file, fieldnames=columns)
-            writer.writeheader()
-            for index, result in enumerate(history, start=1):
-                row = {
-                    "#": index,
-                    "Timestamp": result.get("timestamp", ""),
-                    "Sample Label": result.get("sample", "Unknown Field"),
-                    "Soil": result.get("soil_class", ""),
-                    "Soil Confidence": f"{result.get('soil_confidence', 0):.0f}",
-                    "Water": result.get("water_class", ""),
-                    "Water Confidence": f"{result.get('water_confidence', 0):.0f}",
-                    "Recommendations": " | ".join(result.get("recommendations", [])),
-                }
-                row.update(result.get("input_values", {}))
-                writer.writerow(row)
+        export_csv(Path(path))
+        messagebox.showinfo("History exported", "The saved history was exported.", parent=self.winfo_toplevel())
 
     def _on_row_selected(self, _event: tk.Event) -> None:
         """Reload clicked history results into the Results tab."""

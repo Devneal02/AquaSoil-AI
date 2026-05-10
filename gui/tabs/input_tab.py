@@ -47,7 +47,7 @@ class InputTab(ttk.Frame):
         self.entries: dict[str, ttk.Entry] = {}
         self.value_vars: dict[str, tk.StringVar] = {}
         self.hint_labels: dict[str, ttk.Label] = {}
-        self.sample_placeholder = "e.g. Field A – Barangay Kilada"
+        self.sample_placeholder = "e.g. Field A – Barangay Pisan"
         self.sample_placeholder_active = True
         self._syncing_moisture = False
         self.batch_dialog: Optional[tk.Toplevel] = None
