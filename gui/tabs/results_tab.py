@@ -14,11 +14,15 @@ import ttkbootstrap as ttk
 from gui.components.card import ClassificationCard
 from gui.components.chart import ParameterChart
 from gui.components.rec_card import RecommendationCard
+from gui.farmer_helper import ACTION_GROUPS, build_action_plan
 from gui.theme import (
     COLOR_BACKGROUND,
     COLOR_CARD_BG,
+    COLOR_CRITICAL,
+    COLOR_OK,
     COLOR_TEXT_MUTED,
     COLOR_TEXT_PRIMARY,
+    COLOR_WARNING,
     FONT_BODY,
     FONT_BODY_BOLD,
     FONT_MONO,
@@ -39,6 +43,7 @@ class ResultsTab(ttk.Frame):
         self.app = app_controller
         self.current_result: Optional[dict[str, Any]] = None
         self.recommendation_cards: list[RecommendationCard] = []
+        self.action_plan_labels: dict[str, tk.Label] = {}
         self._build_layout()
 
     def _build_layout(self) -> None:
@@ -62,6 +67,7 @@ class ResultsTab(ttk.Frame):
         self.content.columnconfigure(0, weight=1)
         self._build_summary_section()
         self._build_recommendations_section()
+        self._build_action_plan_section()
         self._build_chart_section()
         self._build_export_row()
 
@@ -102,10 +108,64 @@ class ResultsTab(ttk.Frame):
         self.empty_recommendations: Optional[ttk.Label] = None
         self._show_empty_recommendations()
 
+    def _build_action_plan_section(self) -> None:
+        """Build a farmer-readable priority plan from recommendations."""
+        section = self._section_frame("Farmer Action Plan")
+        section.grid(row=2, column=0, sticky="ew", pady=(0, PADDING_MEDIUM))
+        section.columnconfigure(0, weight=1)
+
+        self.action_plan_panel = ttk.Frame(section)
+        self.action_plan_panel.grid(row=1, column=0, sticky="ew", pady=(PADDING_SMALL, 0))
+        for column in range(len(ACTION_GROUPS)):
+            self.action_plan_panel.columnconfigure(column, weight=1, uniform="plan")
+
+        group_styles = {
+            "Urgent": COLOR_CRITICAL,
+            "This Week": COLOR_WARNING,
+            "Monitor": COLOR_OK,
+        }
+
+        for column, group in enumerate(ACTION_GROUPS):
+            accent = group_styles[group]
+            card = tk.Frame(
+                self.action_plan_panel,
+                bg=COLOR_CARD_BG,
+                highlightbackground=accent,
+                highlightthickness=2,
+                padx=PADDING_MEDIUM,
+                pady=PADDING_MEDIUM,
+            )
+            card.grid(
+                row=0,
+                column=column,
+                sticky="nsew",
+                padx=(0 if column == 0 else PADDING_SMALL, 0 if column == len(ACTION_GROUPS) - 1 else PADDING_SMALL),
+            )
+            tk.Label(
+                card,
+                text=group,
+                font=FONT_BODY_BOLD,
+                fg=accent,
+                bg=COLOR_CARD_BG,
+                anchor="w",
+            ).pack(anchor="w")
+            body = tk.Label(
+                card,
+                text="Run an analysis to create a plan.",
+                font=FONT_BODY,
+                fg=COLOR_TEXT_PRIMARY,
+                bg=COLOR_CARD_BG,
+                justify="left",
+                anchor="nw",
+                wraplength=215,
+            )
+            body.pack(anchor="w", fill="both", expand=True, pady=(PADDING_SMALL, 0))
+            self.action_plan_labels[group] = body
+
     def _build_chart_section(self) -> None:
         """Build the parameter analysis chart section."""
         section = self._section_frame("📈 Parameter Analysis")
-        section.grid(row=2, column=0, sticky="ew", pady=(0, PADDING_MEDIUM))
+        section.grid(row=3, column=0, sticky="ew", pady=(0, PADDING_MEDIUM))
         section.columnconfigure(0, weight=1)
 
         chart_shell = tk.Frame(section, bg=COLOR_CARD_BG, padx=PADDING_SMALL, pady=PADDING_SMALL)
@@ -118,7 +178,7 @@ class ResultsTab(ttk.Frame):
     def _build_export_row(self) -> None:
         """Build report, chart, and print-preview buttons."""
         row = ttk.Frame(self.content)
-        row.grid(row=3, column=0, sticky="ew", pady=(0, PADDING_LARGE))
+        row.grid(row=4, column=0, sticky="ew", pady=(0, PADDING_LARGE))
         row.columnconfigure(3, weight=1)
 
         self.save_report_button = ttk.Button(
@@ -165,6 +225,7 @@ class ResultsTab(ttk.Frame):
         self.soil_card.update_card(result["soil_class"], result["soil_confidence"])
         self.water_card.update_card(result["water_class"], result["water_confidence"])
         self._show_recommendations(result["recommendations"])
+        self._show_action_plan(result)
         self.chart.update_chart(result["input_values"], PARAMETER_RANGES)
         self.canvas.yview_moveto(0)
 
@@ -175,6 +236,7 @@ class ResultsTab(ttk.Frame):
         self.water_card.clear()
         self._clear_recommendations()
         self._show_empty_recommendations()
+        self._show_action_plan(None)
         self.chart.clear()
 
     def save_report(self) -> None:
@@ -258,6 +320,14 @@ class ResultsTab(ttk.Frame):
             child.destroy()
         self.empty_recommendations = None
         self.recommendation_cards.clear()
+
+    def _show_action_plan(self, result: dict[str, Any] | None) -> None:
+        """Populate the farmer action-plan cards."""
+        plan = build_action_plan(result)
+        for group in ACTION_GROUPS:
+            items = plan[group]
+            text = "\n".join(f"{index}. {item}" for index, item in enumerate(items[:3], start=1))
+            self.action_plan_labels[group].configure(text=text)
 
     def _show_empty_recommendations(self) -> None:
         """Show the empty-state message in the recommendation panel."""

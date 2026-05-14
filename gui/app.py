@@ -24,6 +24,7 @@ except ModuleNotFoundError as exc:
     raise SystemExit(1) from exc
 
 from gui.tabs.about_tab import AboutTab
+from gui.tabs.chat_tab import ChatTab
 from gui.tabs.history_tab import HistoryTab
 from gui.tabs.input_tab import InputTab
 from gui.tabs.results_tab import ResultsTab
@@ -94,11 +95,13 @@ class AquaSoilApp(ttk.Window):
 
         self.input_tab = InputTab(self.notebook, self)
         self.results_tab = ResultsTab(self.notebook, self)
+        self.chat_tab = ChatTab(self.notebook, self)
         self.history_tab = HistoryTab(self.notebook, self)
         self.about_tab = AboutTab(self.notebook)
 
         self.notebook.add(self.input_tab, text="🌱 Input")
         self.notebook.add(self.results_tab, text="📊 Results")
+        self.notebook.add(self.chat_tab, text="AquaBot")
         self.notebook.add(self.history_tab, text="📋 History")
         self.notebook.add(self.about_tab, text="ℹ️ About")
 
@@ -201,7 +204,16 @@ class AquaSoilApp(ttk.Window):
     def show_results(self, result: dict[str, Any]) -> None:
         """Populate and select the Results tab."""
         self.results_tab.show_result(result)
+        self.chat_tab.refresh_context()
         self.notebook.select(self.results_tab)
+
+    def get_latest_result(self) -> Optional[dict[str, Any]]:
+        """Return the visible result or the newest saved history row."""
+        if self.results_tab.current_result is not None:
+            return self.results_tab.current_result
+        if self.history:
+            return self.history[0]
+        return None
 
     def show_history(self) -> None:
         """Refresh and select the History tab."""
