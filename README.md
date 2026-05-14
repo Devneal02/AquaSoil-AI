@@ -40,6 +40,14 @@ python src/main.py --batch path/to/your_batch.csv
 ```
 The CSV file must contain a `Sample` column and exactly match the parameter names:
 `Soil pH`, `Nitrogen (N)`, `Phosphorus (P)`, `Potassium (K)`, `Soil Moisture`, `Electrical Conductivity (EC)`, `Water Turbidity`, `Dissolved Oxygen (DO)`, `Total Dissolved Solids`.
+You may also include an optional `Crop` column with values such as `Rice`, `Corn`, `Vegetables`, or `Banana` for crop-specific suitability advice.
+
+### Crop-Specific Advisory
+Use the GUI crop selector or pass a crop in CLI mode:
+```bash
+python src/main.py --crop Rice
+```
+Supported crop choices are `General Field`, `Rice`, `Corn`, `Vegetables`, and `Banana`.
 
 ### Debug Mode
 Add `--debug` to see detailed logs of rule firings.

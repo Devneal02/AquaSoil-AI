@@ -61,22 +61,26 @@ class HistoryTab(ttk.Frame):
         self.table_frame.columnconfigure(0, weight=1)
         self.table_frame.rowconfigure(0, weight=1)
 
-        columns = ("number", "timestamp", "sample", "soil", "water", "priority", "recs")
+        columns = ("number", "timestamp", "sample", "crop", "fit", "soil", "water", "priority", "recs")
         self.tree = ttk.Treeview(self.table_frame, columns=columns, show="headings", bootstyle="primary")
         self.tree.heading("number", text="#")
         self.tree.heading("timestamp", text="Timestamp")
         self.tree.heading("sample", text="Sample Label")
+        self.tree.heading("crop", text="Crop")
+        self.tree.heading("fit", text="Fit")
         self.tree.heading("soil", text="Soil")
         self.tree.heading("water", text="Water")
         self.tree.heading("priority", text="Priority")
         self.tree.heading("recs", text="Recs")
         self.tree.column("number", width=48, anchor="center", stretch=False)
         self.tree.column("timestamp", width=160, anchor="w", stretch=False)
-        self.tree.column("sample", width=250, anchor="w")
-        self.tree.column("soil", width=95, anchor="center", stretch=False)
-        self.tree.column("water", width=95, anchor="center", stretch=False)
-        self.tree.column("priority", width=95, anchor="center", stretch=False)
-        self.tree.column("recs", width=70, anchor="center", stretch=False)
+        self.tree.column("sample", width=210, anchor="w")
+        self.tree.column("crop", width=105, anchor="center", stretch=False)
+        self.tree.column("fit", width=60, anchor="center", stretch=False)
+        self.tree.column("soil", width=80, anchor="center", stretch=False)
+        self.tree.column("water", width=80, anchor="center", stretch=False)
+        self.tree.column("priority", width=85, anchor="center", stretch=False)
+        self.tree.column("recs", width=58, anchor="center", stretch=False)
         self.tree.grid(row=0, column=0, sticky="nsew")
 
         scrollbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.tree.yview)
@@ -253,6 +257,8 @@ class HistoryTab(ttk.Frame):
                     visible_index,
                     result.get("timestamp", ""),
                     result.get("sample", "Unknown Field"),
+                    result.get("crop", "General Field"),
+                    self._crop_fit_text(result),
                     str(result.get("soil_class", "")).upper(),
                     str(result.get("water_class", "")).upper(),
                     self._priority(result),
@@ -336,6 +342,8 @@ class HistoryTab(ttk.Frame):
         first_recommendation = clean_recommendation(recommendations[0]) if recommendations else "No recommendation."
         text = (
             f"{result.get('sample', 'Unknown Field')} | "
+            f"Crop: {result.get('crop', 'General Field')} | "
+            f"Fit: {self._crop_fit_text(result)} | "
             f"Soil: {str(result.get('soil_class', '')).upper()} | "
             f"Water: {str(result.get('water_class', '')).upper()} | "
             f"Priority: {self._priority(result)}\n"
@@ -353,6 +361,8 @@ class HistoryTab(ttk.Frame):
             [
                 str(result.get("timestamp", "")),
                 str(result.get("sample", "")),
+                str(result.get("crop", "")),
+                str(result.get("crop_status", "")),
                 str(result.get("soil_class", "")),
                 str(result.get("water_class", "")),
                 " ".join(str(item) for item in result.get("recommendations", [])),
@@ -380,6 +390,15 @@ class HistoryTab(ttk.Frame):
         if "WARNING" in severities:
             return "Watch"
         return "OK"
+
+    def _crop_fit_text(self, result: dict[str, Any]) -> str:
+        crop_advisory = result.get("crop_advisory", {})
+        if isinstance(crop_advisory, dict) and crop_advisory.get("score") is not None:
+            return f"{float(crop_advisory.get('score', 0)):.0f}%"
+        score = result.get("crop_score")
+        if score is None:
+            return "--"
+        return f"{float(score):.0f}%"
 
     def _row_tag(self, result: dict[str, Any]) -> str:
         """Return the row color tag based on soil and water classes."""

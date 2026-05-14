@@ -94,7 +94,7 @@ class DashboardTab(ttk.Frame):
         self._add_metric(metrics, 0, "Total Analyses", "0", COLOR_TEXT_PRIMARY)
         self._add_metric(metrics, 1, "Urgent Fields", "0", COLOR_CRITICAL)
         self._add_metric(metrics, 2, "Good Fields", "0", COLOR_OK)
-        self._add_metric(metrics, 3, "Latest Sample", "None", COLOR_WARNING)
+        self._add_metric(metrics, 3, "Latest Crop", "None", COLOR_WARNING)
 
     def _add_metric(self, parent: ttk.Frame, column: int, title: str, value: str, accent: str) -> None:
         card = tk.Frame(
@@ -125,7 +125,7 @@ class DashboardTab(ttk.Frame):
             pady=(0, PADDING_SMALL),
         )
 
-        fields = ("Sample", "Timestamp", "Soil", "Water", "Main Priority")
+        fields = ("Sample", "Crop", "Timestamp", "Soil", "Water", "Crop Fit", "Main Priority")
         for row, label in enumerate(fields, start=1):
             ttk.Label(panel, text=f"{label}:", font=FONT_BODY_BOLD, foreground=COLOR_TEXT_MUTED).grid(
                 row=row,
@@ -192,15 +192,19 @@ class DashboardTab(ttk.Frame):
             pady=(0, PADDING_SMALL),
         )
 
-        columns = ("timestamp", "sample", "soil", "water", "priority")
+        columns = ("timestamp", "sample", "crop", "fit", "soil", "water", "priority")
         self.recent_tree = ttk.Treeview(section, columns=columns, show="headings", height=6, bootstyle="primary")
         self.recent_tree.heading("timestamp", text="Timestamp")
         self.recent_tree.heading("sample", text="Sample")
+        self.recent_tree.heading("crop", text="Crop")
+        self.recent_tree.heading("fit", text="Fit")
         self.recent_tree.heading("soil", text="Soil")
         self.recent_tree.heading("water", text="Water")
         self.recent_tree.heading("priority", text="Priority")
         self.recent_tree.column("timestamp", width=155, anchor="w", stretch=False)
-        self.recent_tree.column("sample", width=280, anchor="w")
+        self.recent_tree.column("sample", width=220, anchor="w")
+        self.recent_tree.column("crop", width=105, anchor="center", stretch=False)
+        self.recent_tree.column("fit", width=70, anchor="center", stretch=False)
         self.recent_tree.column("soil", width=90, anchor="center", stretch=False)
         self.recent_tree.column("water", width=90, anchor="center", stretch=False)
         self.recent_tree.column("priority", width=120, anchor="center", stretch=False)
@@ -224,7 +228,7 @@ class DashboardTab(ttk.Frame):
         self.metric_labels["Total Analyses"].configure(text=str(len(history)))
         self.metric_labels["Urgent Fields"].configure(text=str(urgent_count))
         self.metric_labels["Good Fields"].configure(text=str(good_count))
-        self.metric_labels["Latest Sample"].configure(text=latest.get("sample", "None") if latest else "None")
+        self.metric_labels["Latest Crop"].configure(text=latest.get("crop", "None") if latest else "None")
         self._refresh_latest(latest)
         self._refresh_plan(latest)
         self._refresh_recent(history)
@@ -236,9 +240,11 @@ class DashboardTab(ttk.Frame):
             return
 
         self.latest_labels["Sample"].configure(text=latest.get("sample", "Unknown Field"))
+        self.latest_labels["Crop"].configure(text=latest.get("crop", "General Field"))
         self.latest_labels["Timestamp"].configure(text=latest.get("timestamp", ""))
         self.latest_labels["Soil"].configure(text=str(latest.get("soil_class", "")).upper())
         self.latest_labels["Water"].configure(text=str(latest.get("water_class", "")).upper())
+        self.latest_labels["Crop Fit"].configure(text=self._crop_fit_text(latest))
         self.latest_labels["Main Priority"].configure(text=self._main_priority_text(latest))
 
     def _refresh_plan(self, latest: dict[str, Any] | None) -> None:
@@ -258,6 +264,8 @@ class DashboardTab(ttk.Frame):
                 values=(
                     result.get("timestamp", ""),
                     result.get("sample", "Unknown Field"),
+                    result.get("crop", "General Field"),
+                    self._crop_fit_text(result),
                     str(result.get("soil_class", "")).upper(),
                     str(result.get("water_class", "")).upper(),
                     self._priority(result),
@@ -276,6 +284,16 @@ class DashboardTab(ttk.Frame):
             if severity in {"CRITICAL", "WARNING"}:
                 return clean_recommendation(str(recommendation))
         return "No urgent issue detected."
+
+    def _crop_fit_text(self, result: dict[str, Any]) -> str:
+        crop_advisory = result.get("crop_advisory", {})
+        if not isinstance(crop_advisory, dict):
+            return "--"
+        score = crop_advisory.get("score")
+        status = crop_advisory.get("status", "")
+        if score is None:
+            return "--"
+        return f"{float(score):.0f}% {status}"
 
     def _priority(self, result: dict[str, Any]) -> str:
         severities = {severity_from_recommendation(str(item)) for item in result.get("recommendations", [])}

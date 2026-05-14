@@ -9,6 +9,7 @@ if __package__ in (None, ""):
 
 from src.preprocess import PARAMETER_RANGES, validate_inputs
 from src.classifier import classify
+from src.crop_advisor import CROP_OPTIONS, evaluate_crop, normalize_crop
 from src.reasoning_engine import get_recommendations
 from src.output import print_advisory, print_batch_summary
 
@@ -39,7 +40,7 @@ def get_interactive_inputs() -> tuple[str, dict]:
                 
     return sample_label, input_values
 
-def process_sample(sample_label: str, input_values: dict, debug: bool = False) -> dict:
+def process_sample(sample_label: str, input_values: dict, crop_name: str = "General Field", debug: bool = False) -> dict:
     """
     Processes a single sample through the pipeline.
     """
@@ -48,6 +49,7 @@ def process_sample(sample_label: str, input_values: dict, debug: bool = False) -
         validate_inputs(input_values)
         
         # 2. Classify
+        crop_name = normalize_crop(crop_name)
         classification_result = classify(input_values)
         
         # 3. Reasoning
@@ -58,15 +60,23 @@ def process_sample(sample_label: str, input_values: dict, debug: bool = False) -
             'water_class': classification_result['water_class']
         })
         recommendations = get_recommendations(facts, debug=debug)
+        crop_advisory = evaluate_crop(
+            crop_name,
+            input_values,
+            classification_result['soil_class'],
+            classification_result['water_class'],
+        )
         
         # Return bundled result for reporting
         return {
             'sample': sample_label,
+            'crop': crop_name,
             'soil_class': classification_result['soil_class'],
             'soil_confidence': classification_result['soil_confidence'],
             'water_class': classification_result['water_class'],
             'water_confidence': classification_result['water_confidence'],
-            'recommendations': recommendations
+            'recommendations': recommendations,
+            'crop_advisory': crop_advisory,
         }
     except Exception as e:
         if debug:
@@ -87,10 +97,12 @@ def main():
             f"{range_lines}\n\n"
             "Available flags:\n"
             "  --batch PATH   Process samples from a CSV file\n"
+            "  --crop NAME    Target crop for suitability advice\n"
             "  --debug        Print fired rule IDs and diagnostic details"
         ),
     )
     parser.add_argument('--batch', type=str, help="Path to CSV file for batch processing")
+    parser.add_argument('--crop', type=str, choices=CROP_OPTIONS, default="General Field", help="Target crop")
     parser.add_argument('--debug', action='store_true', help="Enable debug logging for rule firing")
     args = parser.parse_args()
     
@@ -106,6 +118,8 @@ def main():
             for index, row in df.iterrows():
                 # Extract sample label, default to row index if missing
                 sample_label = str(row.get('Sample', f"Sample_{index+1}"))
+                row_crop = row.get('Crop', args.crop)
+                crop_name = normalize_crop(args.crop if pd.isna(row_crop) else row_crop)
                 
                 # Extract parameters mapping (case insensitive matching or exact depending on CSV)
                 # We assume the CSV header exactly matches PARAMETER_RANGES keys
@@ -116,7 +130,7 @@ def main():
                     else:
                         raise KeyError(f"CSV missing required column: '{param}'")
                         
-                result = process_sample(sample_label, input_values, debug=args.debug)
+                result = process_sample(sample_label, input_values, crop_name=crop_name, debug=args.debug)
                 if result:
                     print_advisory(result['sample'], result, result['recommendations'])
                     results.append(result)
@@ -135,7 +149,7 @@ def main():
         # Interactive mode
         try:
             sample_label, input_values = get_interactive_inputs()
-            result = process_sample(sample_label, input_values, debug=args.debug)
+            result = process_sample(sample_label, input_values, crop_name=args.crop, debug=args.debug)
             if result:
                 print_advisory(result['sample'], result, result['recommendations'])
         except KeyboardInterrupt:

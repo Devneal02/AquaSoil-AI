@@ -27,6 +27,9 @@ CSV_COLUMNS = [
     "id",
     "timestamp",
     "sample_label",
+    "crop",
+    "crop_score",
+    "crop_status",
     "soil_class",
     "water_class",
     "soil_confidence",
@@ -40,6 +43,7 @@ CSV_COLUMNS = [
     "turbidity",
     "DO",
     "TDS",
+    "crop_advisory",
     "recommendations",
 ]
 
@@ -61,6 +65,9 @@ def init_db() -> None:
               id               INTEGER PRIMARY KEY AUTOINCREMENT,
               timestamp        TEXT,
               sample_label     TEXT,
+              crop             TEXT,
+              crop_score       REAL,
+              crop_status      TEXT,
               soil_class       TEXT,
               water_class      TEXT,
               soil_confidence  REAL,
@@ -74,10 +81,23 @@ def init_db() -> None:
               turbidity        REAL,
               DO               REAL,
               TDS              REAL,
+              crop_advisory    TEXT,
               recommendations  TEXT
             );
             """
         )
+        existing_columns = {
+            row["name"] for row in connection.execute("PRAGMA table_info(analyses)").fetchall()
+        }
+        migrations = {
+            "crop": "ALTER TABLE analyses ADD COLUMN crop TEXT",
+            "crop_score": "ALTER TABLE analyses ADD COLUMN crop_score REAL",
+            "crop_status": "ALTER TABLE analyses ADD COLUMN crop_status TEXT",
+            "crop_advisory": "ALTER TABLE analyses ADD COLUMN crop_advisory TEXT",
+        }
+        for column, statement in migrations.items():
+            if column not in existing_columns:
+                connection.execute(statement)
 
 
 def save_analysis(data: dict[str, Any]) -> None:
@@ -87,10 +107,17 @@ def save_analysis(data: dict[str, Any]) -> None:
     recommendations = data.get("recommendations", [])
     if not isinstance(recommendations, list):
         recommendations = [str(recommendations)]
+    crop_advisory = data.get("crop_advisory", {})
+    if not isinstance(crop_advisory, dict):
+        crop_advisory = {}
 
     row = {
         "timestamp": data.get("timestamp", ""),
         "sample_label": data.get("sample_label", data.get("sample", "Unknown Field")),
+        "crop": data.get("crop", "General Field"),
+        "crop_score": float(crop_advisory.get("score", 0)),
+        "crop_status": crop_advisory.get("status", ""),
+        "crop_advisory": json.dumps(crop_advisory, ensure_ascii=False),
         "soil_class": data.get("soil_class", ""),
         "water_class": data.get("water_class", ""),
         "soil_confidence": float(data.get("soil_confidence", 0)),
@@ -152,12 +179,22 @@ def _row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
         parameter: row[column]
         for parameter, column in PARAMETER_TO_COLUMN.items()
     }
+    raw_crop_advisory = row["crop_advisory"] or "{}"
+    try:
+        crop_advisory = json.loads(raw_crop_advisory)
+    except json.JSONDecodeError:
+        crop_advisory = {}
+    if not isinstance(crop_advisory, dict):
+        crop_advisory = {}
+
     record = {column: row[column] for column in CSV_COLUMNS}
     record.update(
         {
             "sample": row["sample_label"],
+            "crop": row["crop"] or "General Field",
             "input_values": input_values,
             "recommendations": recommendations,
+            "crop_advisory": crop_advisory,
         }
     )
     return record

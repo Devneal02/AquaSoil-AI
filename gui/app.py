@@ -46,6 +46,7 @@ from gui.theme import (
     THEME_NAME,
 )
 from src.classifier import classify
+from src.crop_advisor import crop_advisory_lines, evaluate_crop, normalize_crop
 from src.knowledge_base import RULES
 from src.output import print_advisory
 from src.preprocess import validate_inputs
@@ -164,9 +165,10 @@ class AquaSoilApp(ttk.Window):
         """Set the status bar to the completed analysis message."""
         self.status_var.set(STATUS_COMPLETE)
 
-    def process_sample(self, sample_label: str, input_values: dict[str, float]) -> dict[str, Any]:
+    def process_sample(self, sample_label: str, input_values: dict[str, float], crop_name: str = "General Field") -> dict[str, Any]:
         """Run one sample through validation, classification, and reasoning."""
         validate_inputs(input_values)
+        normalized_crop = normalize_crop(crop_name)
         classification_result = classify(input_values)
         facts = input_values.copy()
         facts.update(
@@ -176,9 +178,16 @@ class AquaSoilApp(ttk.Window):
             }
         )
         recommendations = get_recommendations(facts)
+        crop_advisory = evaluate_crop(
+            normalized_crop,
+            input_values,
+            classification_result["soil_class"],
+            classification_result["water_class"],
+        )
 
         return {
             "sample": sample_label,
+            "crop": normalized_crop,
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "input_values": input_values.copy(),
             "soil_class": classification_result["soil_class"],
@@ -186,6 +195,7 @@ class AquaSoilApp(ttk.Window):
             "water_class": classification_result["water_class"],
             "water_confidence": classification_result["water_confidence"],
             "recommendations": recommendations,
+            "crop_advisory": crop_advisory,
         }
 
     def add_history_result(self, result: dict[str, Any]) -> None:
@@ -280,6 +290,7 @@ class AquaSoilApp(ttk.Window):
             "=== AquaSoil-AI Advisory Report ===",
             f"Timestamp   : {result.get('timestamp', '')}",
             f"Sample      : {result.get('sample', 'Unknown Field')}",
+            f"Target Crop : {result.get('crop', 'General Field')}",
             f"Soil Quality: {str(result.get('soil_class', '')).upper():<8} "
             f"(Confidence: {float(result.get('soil_confidence', 0)):.0f}%)",
             f"Water Quality: {str(result.get('water_class', '')).upper():<6} "
@@ -290,6 +301,10 @@ class AquaSoilApp(ttk.Window):
 
         for parameter, value in result.get("input_values", {}).items():
             lines.append(f"{parameter}: {value:g}")
+
+        lines.append("")
+        lines.append("--- Crop Suitability ---")
+        lines.extend(crop_advisory_lines(result.get("crop_advisory")))
 
         lines.append("")
         lines.append("--- Recommendations ---")

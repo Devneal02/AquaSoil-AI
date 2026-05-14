@@ -2,6 +2,8 @@ import os
 from datetime import datetime
 import textwrap
 
+from src.crop_advisor import crop_advisory_lines
+
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPORTS_DIR = os.path.join(PROJECT_ROOT, 'reports')
 
@@ -19,14 +21,18 @@ def print_advisory(sample_label: str, classification_result: dict, recommendatio
     soil_conf = classification_result['soil_confidence']
     water_cls = classification_result['water_class'].upper()
     water_conf = classification_result['water_confidence']
+    crop = classification_result.get('crop', 'General Field')
     generated_at = datetime.now()
     
     report_lines = []
     report_lines.append("=== AquaSoil-AI Advisory Report ===")
     report_lines.append(f"Sample      : {sample_label}")
     report_lines.append(f"Timestamp   : {generated_at.strftime('%Y-%m-%d %H:%M:%S')}")
+    report_lines.append(f"Target Crop : {crop}")
     report_lines.append(f"Soil Quality: {soil_cls:<6} (Confidence: {soil_conf:.0f}%)")
     report_lines.append(f"Water Quality: {water_cls:<5} (Confidence: {water_conf:.0f}%)")
+    report_lines.append("\n--- Crop Suitability ---")
+    report_lines.extend(crop_advisory_lines(classification_result.get('crop_advisory')))
     report_lines.append("\n--- Recommendations ---")
     
     for rec in recommendations:
@@ -69,14 +75,15 @@ def print_batch_summary(results: list[dict]):
     Prints a summary table of all samples processed in batch mode.
     """
     print("\n=== Batch Processing Summary ===")
-    header = f"{'Sample':<25} | {'Soil Quality':<12} | {'Water Quality':<13} | {'Alerts'}"
+    header = f"{'Sample':<25} | {'Crop':<14} | {'Soil Quality':<12} | {'Water Quality':<13} | {'Alerts'}"
     print(header)
     print("-" * len(header))
     
     for r in results:
         sample = textwrap.shorten(r['sample'], width=23, placeholder="..")
+        crop = textwrap.shorten(r.get('crop', 'General Field'), width=12, placeholder="..")
         soil = r['soil_class'].upper()
         water = r['water_class'].upper()
         alerts = len([rec for rec in r['recommendations'] if 'CRITICAL' in rec or 'WARNING' in rec])
-        print(f"{sample:<25} | {soil:<12} | {water:<13} | {alerts} issue(s)")
+        print(f"{sample:<25} | {crop:<14} | {soil:<12} | {water:<13} | {alerts} issue(s)")
     print("================================\n")

@@ -6,6 +6,7 @@ import re
 from typing import Any
 
 from gui.theme import OPTIMAL_RANGES, PARAMETER_LABELS, PARAMETER_ORDER
+from src.crop_advisor import CROP_OPTIONS, crop_advisory_lines
 from src.preprocess import PARAMETER_RANGES
 
 
@@ -68,6 +69,17 @@ def build_action_plan(result: dict[str, Any] | None) -> dict[str, list[str]]:
         else:
             plan["Monitor"].append(text)
 
+    crop_advisory = result.get("crop_advisory", {})
+    if isinstance(crop_advisory, dict) and crop_advisory:
+        crop_step = _first_crop_step(crop_advisory)
+        status = str(crop_advisory.get("status", "")).lower()
+        if crop_step and "delay" in status:
+            plan["Urgent"].insert(0, crop_step)
+        elif crop_step and "attention" in status:
+            plan["This Week"].insert(0, crop_step)
+        elif crop_step:
+            plan["Monitor"].append(crop_step)
+
     if not plan["Urgent"]:
         plan["Urgent"].append("No urgent issue detected from the latest analysis.")
     if not plan["This Week"]:
@@ -78,19 +90,30 @@ def build_action_plan(result: dict[str, Any] | None) -> dict[str, list[str]]:
     return plan
 
 
+def _first_crop_step(crop_advisory: dict[str, Any]) -> str:
+    steps = crop_advisory.get("next_steps", [])
+    if not steps:
+        return ""
+    return str(steps[0])
+
+
 def farmer_summary(result: dict[str, Any] | None) -> str:
     """Summarize the latest sample in plain farmer-facing language."""
     if not result:
         return "No sample has been analyzed yet. Enter measurements or load a CSV, then I can explain the result."
 
     sample = result.get("sample", "Unknown Field")
+    crop = result.get("crop", "General Field")
     soil_class = str(result.get("soil_class", "Unknown")).upper()
     water_class = str(result.get("water_class", "Unknown")).upper()
     recommendations = [str(item) for item in result.get("recommendations", [])]
     critical_count = sum(1 for item in recommendations if severity_from_recommendation(item) == "CRITICAL")
     warning_count = sum(1 for item in recommendations if severity_from_recommendation(item) == "WARNING")
 
-    message = f"Latest sample: {sample}\nSoil quality: {soil_class}\nWater quality: {water_class}"
+    message = f"Latest sample: {sample}\nTarget crop: {crop}\nSoil quality: {soil_class}\nWater quality: {water_class}"
+    crop_advisory = result.get("crop_advisory", {})
+    if isinstance(crop_advisory, dict) and crop_advisory:
+        message += f"\nCrop fit: {float(crop_advisory.get('score', 0)):.0f}% - {crop_advisory.get('status', 'Unknown')}"
     if critical_count:
         message += f"\nFocus first on {critical_count} urgent issue(s), then handle the warnings."
     elif warning_count:
@@ -120,6 +143,9 @@ def generate_chat_response(
     if matched_parameter:
         return parameter_explanation(matched_parameter, latest_result)
 
+    if _has_crop_intent(normalized):
+        return crop_summary(latest_result)
+
     if _has_any(normalized, ("latest", "result", "summary", "explain", "status")):
         return farmer_summary(latest_result)
 
@@ -139,7 +165,8 @@ def generate_chat_response(
     if _has_any(normalized, ("csv", "batch", "spreadsheet", "file")):
         return (
             "For CSV batch analysis, prepare one row per field sample. The file needs a Sample column plus all "
-            "nine AquaSoil-AI parameter columns. Then use Load CSV from the Input tab."
+            "nine AquaSoil-AI parameter columns. You can also add an optional Crop column, such as Rice, Corn, "
+            "Vegetables, or Banana. Then use Load CSV from the Input tab."
         )
 
     if _has_any(normalized, ("report", "save", "print", "export")):
@@ -187,6 +214,16 @@ def parameter_explanation(parameter: str, latest_result: dict[str, Any] | None =
     return "\n".join(lines)
 
 
+def crop_summary(result: dict[str, Any] | None) -> str:
+    """Return the latest crop suitability explanation."""
+    if not result:
+        return "Analyze a sample with a target crop first, then I can explain crop suitability."
+    crop_advisory = result.get("crop_advisory")
+    if not isinstance(crop_advisory, dict) or not crop_advisory:
+        return "No crop suitability data is available for the latest result."
+    return "\n".join(crop_advisory_lines(crop_advisory))
+
+
 def _action_plan_response(result: dict[str, Any] | None) -> str:
     plan = build_action_plan(result)
     lines = [farmer_summary(result), "", "Recommended order:"]
@@ -213,6 +250,12 @@ def _match_parameter(normalized: str) -> str | None:
 
 def _has_any(normalized: str, keywords: tuple[str, ...]) -> bool:
     return any(keyword in normalized for keyword in keywords)
+
+
+def _has_crop_intent(normalized: str) -> bool:
+    crop_words = ("crop", "suitability", "planting", "plant", "rice", "corn", "vegetable", "banana")
+    supported_names = tuple(option.lower() for option in CROP_OPTIONS)
+    return any(word in normalized for word in crop_words) or any(name in normalized for name in supported_names)
 
 
 def _value_status(value: float, minimum: float, maximum: float) -> str:

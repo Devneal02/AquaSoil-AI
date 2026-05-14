@@ -36,6 +36,7 @@ from gui.theme import (
     PARAMETER_ORDER,
     STATUS_ANALYZING,
 )
+from src.crop_advisor import CROP_OPTIONS, normalize_crop
 from src.preprocess import PARAMETER_RANGES, validate_inputs
 
 
@@ -50,6 +51,7 @@ class InputTab(ttk.Frame):
         self.value_vars: dict[str, tk.StringVar] = {}
         self.hint_labels: dict[str, ttk.Label] = {}
         self.range_indicators: dict[str, RangeIndicator] = {}
+        self.crop_var = tk.StringVar(value="General Field")
         self.sample_placeholder = "e.g. Field A – Barangay Pisan"
         self.sample_placeholder_active = True
         self._syncing_moisture = False
@@ -89,24 +91,47 @@ class InputTab(ttk.Frame):
         divider.grid(row=1, column=0, sticky="ew", pady=(0, PADDING_MEDIUM))
 
     def _build_sample_field(self) -> None:
-        """Build the optional sample label field."""
+        """Build the optional sample label and crop selector fields."""
         sample_frame = ttk.Frame(self)
         sample_frame.grid(row=2, column=0, sticky="ew", pady=(0, PADDING_MEDIUM))
-        sample_frame.columnconfigure(0, weight=1)
+        sample_frame.columnconfigure(0, weight=2)
+        sample_frame.columnconfigure(1, weight=1)
+
+        label_frame = ttk.Frame(sample_frame)
+        label_frame.grid(row=0, column=0, sticky="ew", padx=(0, PADDING_MEDIUM))
+        label_frame.columnconfigure(0, weight=1)
 
         ttk.Label(
-            sample_frame,
+            label_frame,
             text="Sample / Field Name (optional)",
             font=FONT_BODY_BOLD,
             foreground=COLOR_TEXT_PRIMARY,
         ).grid(row=0, column=0, sticky="w")
 
         self.sample_var = tk.StringVar(value=self.sample_placeholder)
-        self.sample_entry = ttk.Entry(sample_frame, textvariable=self.sample_var, bootstyle="secondary")
+        self.sample_entry = ttk.Entry(label_frame, textvariable=self.sample_var, bootstyle="secondary")
         self.sample_entry.grid(row=1, column=0, sticky="ew", pady=(PADDING_SMALL, 0))
         self.sample_entry.configure(foreground=COLOR_TEXT_MUTED)
         self.sample_entry.bind("<FocusIn>", self._clear_sample_placeholder)
         self.sample_entry.bind("<FocusOut>", self._restore_sample_placeholder)
+
+        crop_frame = ttk.Frame(sample_frame)
+        crop_frame.grid(row=0, column=1, sticky="ew")
+        crop_frame.columnconfigure(0, weight=1)
+        ttk.Label(
+            crop_frame,
+            text="Target Crop",
+            font=FONT_BODY_BOLD,
+            foreground=COLOR_TEXT_PRIMARY,
+        ).grid(row=0, column=0, sticky="w")
+        self.crop_combo = ttk.Combobox(
+            crop_frame,
+            textvariable=self.crop_var,
+            values=CROP_OPTIONS,
+            state="readonly",
+            bootstyle="secondary",
+        )
+        self.crop_combo.grid(row=1, column=0, sticky="ew", pady=(PADDING_SMALL, 0))
 
     def _build_parameter_columns(self) -> None:
         """Build soil and water parameter form panels."""
@@ -349,6 +374,10 @@ class InputTab(ttk.Frame):
         label = self.sample_var.get().strip()
         return label or "Unknown Field"
 
+    def get_crop_name(self) -> str:
+        """Return the selected target crop."""
+        return normalize_crop(self.crop_var.get())
+
     def get_input_values(self) -> dict[str, float]:
         """Return validated input values as backend parameter names."""
         values = {parameter: float(self.value_vars[parameter].get().strip()) for parameter in PARAMETER_ORDER}
@@ -366,6 +395,7 @@ class InputTab(ttk.Frame):
         self.sample_var.set(self.sample_placeholder)
         self.sample_entry.configure(foreground=COLOR_TEXT_MUTED)
         self.sample_placeholder_active = True
+        self.crop_var.set("General Field")
         self.app.set_status_ready()
 
     def _handle_analyze_click(self) -> None:
@@ -397,16 +427,17 @@ class InputTab(ttk.Frame):
             return
 
         sample_label = self.get_sample_label()
+        crop_name = self.get_crop_name()
         self._set_loading(True)
         self.app.set_status(STATUS_ANALYZING)
 
-        worker = threading.Thread(target=self._run_single_analysis, args=(sample_label, values), daemon=True)
+        worker = threading.Thread(target=self._run_single_analysis, args=(sample_label, values, crop_name), daemon=True)
         worker.start()
 
-    def _run_single_analysis(self, sample_label: str, values: dict[str, float]) -> None:
+    def _run_single_analysis(self, sample_label: str, values: dict[str, float], crop_name: str) -> None:
         """Run backend analysis for one sample in a background thread."""
         try:
-            result = self.app.process_sample(sample_label, values)
+            result = self.app.process_sample(sample_label, values, crop_name)
         except FileNotFoundError as exc:
             self.after(0, partial(self._finish_model_error, exc))
         except Exception as exc:
@@ -515,6 +546,7 @@ class InputTab(ttk.Frame):
             self.after(0, partial(self._update_batch_progress, position - 1, total_rows))
             try:
                 sample_label = str(row.get("Sample", f"Sample_{position}")).strip() or f"Sample_{position}"
+                crop_name = self._crop_from_csv_row(row)
                 values = self._values_from_csv_row(row)
                 validate_inputs(values)
             except Exception as exc:
@@ -523,7 +555,7 @@ class InputTab(ttk.Frame):
                 continue
 
             try:
-                result = self.app.process_sample(sample_label, values)
+                result = self.app.process_sample(sample_label, values, crop_name)
                 self.app.save_automatic_report(result)
                 results.append(result)
             except FileNotFoundError as exc:
@@ -547,6 +579,12 @@ class InputTab(ttk.Frame):
                 raise ValueError(f"Missing value for {parameter}")
             values[parameter] = float(value)
         return values
+
+    def _crop_from_csv_row(self, row: pd.Series) -> str:
+        """Return the CSV crop value if present, otherwise use the selected crop."""
+        if "Crop" not in row or pd.isna(row["Crop"]):
+            return self.get_crop_name()
+        return normalize_crop(str(row["Crop"]))
 
     def _update_batch_progress(self, current: int, total: int) -> None:
         """Update the batch progress dialog text and bar value."""

@@ -101,10 +101,10 @@ class ChatTab(ttk.Frame):
 
         prompts = [
             "Explain latest result",
+            "Explain crop suitability",
             "What should I do first?",
             "How do I use CSV?",
             "Explain pH",
-            "Explain TDS",
         ]
         for index, prompt in enumerate(prompts):
             ttk.Button(
