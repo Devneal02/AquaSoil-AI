@@ -25,6 +25,7 @@ except ModuleNotFoundError as exc:
 
 from gui.tabs.about_tab import AboutTab
 from gui.tabs.chat_tab import ChatTab
+from gui.tabs.dashboard_tab import DashboardTab
 from gui.tabs.history_tab import HistoryTab
 from gui.tabs.input_tab import InputTab
 from gui.tabs.results_tab import ResultsTab
@@ -98,7 +99,9 @@ class AquaSoilApp(ttk.Window):
         self.chat_tab = ChatTab(self.notebook, self)
         self.history_tab = HistoryTab(self.notebook, self)
         self.about_tab = AboutTab(self.notebook)
+        self.dashboard_tab = DashboardTab(self.notebook, self)
 
+        self.notebook.add(self.dashboard_tab, text="Dashboard")
         self.notebook.add(self.input_tab, text="🌱 Input")
         self.notebook.add(self.results_tab, text="📊 Results")
         self.notebook.add(self.chat_tab, text="AquaBot")
@@ -107,6 +110,7 @@ class AquaSoilApp(ttk.Window):
 
         self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
         self.history_tab.refresh(self.history)
+        self.dashboard_tab.refresh(self.history)
 
         self.status_var = tk.StringVar(value=STATUS_READY)
         self.status_bar = ttk.Label(
@@ -193,19 +197,36 @@ class AquaSoilApp(ttk.Window):
         """Load persisted analyses and refresh the history table."""
         self.history = load_all()
         self.history_tab.refresh(self.history)
+        if hasattr(self, "dashboard_tab"):
+            self.dashboard_tab.refresh(self.history)
 
     def clear_history(self) -> None:
         """Clear all persisted history rows."""
         delete_all()
         self.history = []
         self.history_tab.refresh(self.history)
+        self.dashboard_tab.refresh(self.history)
         self.set_status_ready()
+
+    def show_dashboard(self) -> None:
+        """Refresh and select the dashboard tab."""
+        self.reload_history()
+        self.notebook.select(self.dashboard_tab)
+
+    def show_input(self) -> None:
+        """Select the input tab."""
+        self.notebook.select(self.input_tab)
 
     def show_results(self, result: dict[str, Any]) -> None:
         """Populate and select the Results tab."""
         self.results_tab.show_result(result)
         self.chat_tab.refresh_context()
+        self.dashboard_tab.refresh(self.history)
         self.notebook.select(self.results_tab)
+
+    def show_chat(self) -> None:
+        """Select the AquaBot tab."""
+        self.notebook.select(self.chat_tab)
 
     def get_latest_result(self) -> Optional[dict[str, Any]]:
         """Return the visible result or the newest saved history row."""
@@ -230,6 +251,8 @@ class AquaSoilApp(ttk.Window):
         selected_widget = self.notebook.nametowidget(self.notebook.select())
         if selected_widget is self.history_tab:
             self.reload_history()
+        elif selected_widget is self.dashboard_tab:
+            self.dashboard_tab.refresh(self.history)
 
     def safe_report_filename(self, sample_label: str) -> str:
         """Return a safe default report filename for a sample."""

@@ -15,6 +15,7 @@ from tkinter import filedialog, messagebox
 
 import ttkbootstrap as ttk
 
+from gui.components.range_indicator import RangeIndicator
 from gui.theme import (
     COLOR_DIVIDER,
     COLOR_SOIL,
@@ -30,6 +31,7 @@ from gui.theme import (
     PADDING_LARGE,
     PADDING_MEDIUM,
     PADDING_SMALL,
+    OPTIMAL_RANGES,
     PARAMETER_LABELS,
     PARAMETER_ORDER,
     STATUS_ANALYZING,
@@ -47,6 +49,7 @@ class InputTab(ttk.Frame):
         self.entries: dict[str, ttk.Entry] = {}
         self.value_vars: dict[str, tk.StringVar] = {}
         self.hint_labels: dict[str, ttk.Label] = {}
+        self.range_indicators: dict[str, RangeIndicator] = {}
         self.sample_placeholder = "e.g. Field A – Barangay Pisan"
         self.sample_placeholder_active = True
         self._syncing_moisture = False
@@ -132,14 +135,15 @@ class InputTab(ttk.Frame):
         label_text = PARAMETER_LABELS[parameter]
 
         label = ttk.Label(parent, text=label_text, font=FONT_BODY, foreground=COLOR_TEXT_PRIMARY)
-        label.grid(row=row * 2, column=0, sticky="w", padx=(0, PADDING_MEDIUM), pady=(PADDING_SMALL, 0))
+        label.grid(row=row * 3, column=0, sticky="w", padx=(0, PADDING_MEDIUM), pady=(PADDING_SMALL, 0))
 
         control_frame = ttk.Frame(parent)
-        control_frame.grid(row=row * 2, column=1, sticky="ew", pady=(PADDING_SMALL, 0))
+        control_frame.grid(row=row * 3, column=1, sticky="ew", pady=(PADDING_SMALL, 0))
         control_frame.columnconfigure(0, weight=1)
 
         value_var = tk.StringVar()
         self.value_vars[parameter] = value_var
+        value_var.trace_add("write", lambda *_args, parameter=parameter: self._update_range_indicator(parameter))
 
         if parameter == "Soil Moisture":
             self._create_moisture_controls(control_frame, parameter, value_var)
@@ -149,17 +153,22 @@ class InputTab(ttk.Frame):
             entry.bind("<FocusOut>", partial(self._on_parameter_focus_out, parameter))
             self.entries[parameter] = entry
 
+        optimal_minimum, optimal_maximum = OPTIMAL_RANGES[parameter]
         hint = ttk.Label(
             parent,
-            text=f"Valid range: {minimum:g} – {maximum:g}",
+            text=f"Valid: {minimum:g} - {maximum:g} | Target: {optimal_minimum:g} - {optimal_maximum:g}",
             font=FONT_HINT,
             foreground=COLOR_TEXT_MUTED,
         )
-        hint.grid(row=row * 2 + 1, column=1, sticky="w", pady=(0, PADDING_SMALL))
+        hint.grid(row=row * 3 + 1, column=1, sticky="w")
         self.hint_labels[parameter] = hint
 
+        indicator = RangeIndicator(parent, parameter)
+        indicator.grid(row=row * 3 + 2, column=1, sticky="ew", pady=(0, PADDING_SMALL))
+        self.range_indicators[parameter] = indicator
+
         accent_marker = tk.Frame(parent, width=3, height=1, bg=accent)
-        accent_marker.grid(row=row * 2, column=2, rowspan=2, sticky="ns", padx=(PADDING_SMALL, 0))
+        accent_marker.grid(row=row * 3, column=2, rowspan=3, sticky="ns", padx=(PADDING_SMALL, 0))
 
     def _create_moisture_controls(self, parent: ttk.Frame, parameter: str, value_var: tk.StringVar) -> None:
         """Create the paired moisture slider and numeric entry."""
@@ -278,6 +287,25 @@ class InputTab(ttk.Frame):
         self._syncing_moisture = True
         self.moisture_slider_var.set(value)
         self._syncing_moisture = False
+
+    def _update_range_indicator(self, parameter: str) -> None:
+        """Move the live range marker for one parameter."""
+        indicator = self.range_indicators.get(parameter)
+        if indicator is None:
+            return
+
+        text = self.value_vars[parameter].get().strip()
+        if not text:
+            indicator.set_value(None, valid=False)
+            return
+
+        try:
+            value = float(text)
+        except ValueError:
+            indicator.set_value(None, valid=False)
+            return
+
+        indicator.set_value(value, valid=math.isfinite(value))
 
     def validate_field(self, parameter: str, require_value: bool = False) -> bool:
         """Validate one numeric parameter and update its entry border style."""
