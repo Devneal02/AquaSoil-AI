@@ -21,6 +21,14 @@ This will generate `aquasoil_model.pkl` and `scaler.pkl` in the `models/` direct
 
 ## How to Run the System
 
+### Desktop App
+On Windows, double-click `AquaSoil-AI.vbs` in the project folder to open the desktop GUI without typing a terminal command.
+
+If it does not open, install dependencies first:
+```bash
+pip install -r requirements.txt
+```
+
 ### Single Sample Mode
 To process a single sample interactively, run:
 ```bash
