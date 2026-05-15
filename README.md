@@ -21,6 +21,15 @@ This will generate `aquasoil_model.pkl` and `scaler.pkl` in the `models/` direct
 
 ## How to Run the System
 
+### Online / Web App
+Run the browser-based app locally with:
+```bash
+streamlit run web_app.py
+```
+Then open the local URL shown by Streamlit. This version works on desktop browsers and mobile browsers connected to the same network.
+
+On Windows, you can also double-click `AquaSoil-Web.bat` to start the web app.
+
 ### Desktop App
 On Windows, double-click `AquaSoil-AI.vbs` in the project folder to open the desktop GUI without typing a terminal command.
 
@@ -56,6 +65,14 @@ Use the GUI crop selector or pass a crop in CLI mode:
 python src/main.py --crop Rice
 ```
 Supported crop choices are `General Field`, `Rice`, `Corn`, `Vegetables`, and `Banana`.
+
+## Deploying Online
+
+The simplest deployment path is Streamlit Community Cloud:
+
+1. Push this project to GitHub.
+2. Make sure `requirements.txt`, `web_app.py`, `models/aquasoil_model.pkl`, and `models/scaler.pkl` are included.
+3. Create a Streamlit app and choose `web_app.py` as the main file.
 
 ### Debug Mode
 Add `--debug` to see detailed logs of rule firings.
