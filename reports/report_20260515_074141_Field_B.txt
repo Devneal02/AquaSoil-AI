@@ -1,0 +1,18 @@
+=== AquaSoil-AI Advisory Report ===
+Sample      : Field B - Corn Area
+Timestamp   : 2026-05-15 07:41:41
+Target Crop : Corn
+Soil Quality: GOOD   (Confidence: 100%)
+Water Quality: GOOD  (Confidence: 84%)
+
+--- Crop Suitability ---
+Crop       : Corn
+Suitability: 100% - Suitable
+Summary    : Corn looks suitable based on the current soil and water readings.
+Next Steps :
+- Proceed with Corn planning while continuing regular monitoring.
+- Retest the field before major fertilizer or irrigation changes.
+
+--- Recommendations ---
+[OK]  Soil and water quality are both Good. Safe to plant and
+      irrigate.

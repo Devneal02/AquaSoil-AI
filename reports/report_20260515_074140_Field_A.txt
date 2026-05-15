@@ -1,0 +1,17 @@
+=== AquaSoil-AI Advisory Report ===
+Sample      : Field A - Rice Plot
+Timestamp   : 2026-05-15 07:41:40
+Target Crop : Rice
+Soil Quality: POOR   (Confidence: 43%)
+Water Quality: MODERATE (Confidence: 52%)
+
+--- Crop Suitability ---
+Crop       : Rice
+Suitability: 86% - Suitable
+Summary    : Rice looks suitable based on the current soil and water readings.
+Next Steps :
+- Proceed with Rice planning while continuing regular monitoring.
+- Retest the field before major fertilizer or irrigation changes.
+
+--- Recommendations ---
+[OK]  No specific issues detected. Continue regular monitoring.

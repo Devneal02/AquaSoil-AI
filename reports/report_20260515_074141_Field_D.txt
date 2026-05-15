@@ -1,0 +1,17 @@
+=== AquaSoil-AI Advisory Report ===
+Sample      : Field D - Banana Area
+Timestamp   : 2026-05-15 07:41:41
+Target Crop : Banana
+Soil Quality: POOR   (Confidence: 36%)
+Water Quality: MODERATE (Confidence: 100%)
+
+--- Crop Suitability ---
+Crop       : Banana
+Suitability: 86% - Suitable
+Summary    : Banana looks suitable based on the current soil and water readings.
+Next Steps :
+- Proceed with Banana planning while continuing regular monitoring.
+- Retest the field before major fertilizer or irrigation changes.
+
+--- Recommendations ---
+[OK]  No specific issues detected. Continue regular monitoring.

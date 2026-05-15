@@ -1,0 +1,21 @@
+=== AquaSoil-AI Advisory Report ===
+Sample      : Field H - Banana Moderate
+Timestamp   : 2026-05-15 07:41:41
+Target Crop : Banana
+Soil Quality: MODERATE (Confidence: 74%)
+Water Quality: MODERATE (Confidence: 100%)
+
+--- Crop Suitability ---
+Crop       : Banana
+Suitability: 75% - Needs attention
+Summary    : Banana can be considered after fixing the main limiting readings.
+Next Steps :
+- Increase irrigation or schedule watering before planting.
+- Reduce salinity risk by flushing with cleaner water if available.
+- Let water settle or filter it before irrigation.
+
+--- Recommendations ---
+[WARNING]  Soil is slightly acidic. Consider applying a moderate
+           amount of lime before the next planting season.
+[WARNING]  Water turbidity is elevated. Filter before use for
+           irrigation.

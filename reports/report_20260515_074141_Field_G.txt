@@ -1,0 +1,18 @@
+=== AquaSoil-AI Advisory Report ===
+Sample      : Field G - Vegetables Good
+Timestamp   : 2026-05-15 07:41:41
+Target Crop : Vegetables
+Soil Quality: GOOD   (Confidence: 75%)
+Water Quality: GOOD  (Confidence: 53%)
+
+--- Crop Suitability ---
+Crop       : Vegetables
+Suitability: 100% - Suitable
+Summary    : Vegetables looks suitable based on the current soil and water readings.
+Next Steps :
+- Proceed with Vegetables planning while continuing regular monitoring.
+- Retest the field before major fertilizer or irrigation changes.
+
+--- Recommendations ---
+[OK]  Soil and water quality are both Good. Safe to plant and
+      irrigate.

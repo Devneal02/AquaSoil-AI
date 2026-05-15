@@ -1,0 +1,5 @@
+Sample,Crop,Soil pH,Nitrogen (N),Phosphorus (P),Potassium (K),Soil Moisture,Electrical Conductivity (EC),Water Turbidity,Dissolved Oxygen (DO),Total Dissolved Solids
+Field A - Rice Plot,Rice,6.2,80,35,180,72,1.2,35,6.5,480
+Field B - Corn Area,Corn,6.6,95,45,220,52,1.0,25,7.0,420
+Field C - Vegetable Bed,Vegetables,5.4,18,8,70,28,4.8,120,4.2,1300
+Field D - Banana Area,Banana,6.0,70,28,240,64,1.4,45,6.0,520

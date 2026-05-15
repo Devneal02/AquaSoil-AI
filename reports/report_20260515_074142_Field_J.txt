@@ -1,0 +1,18 @@
+=== AquaSoil-AI Advisory Report ===
+Sample      : Field J - General Field Optimal
+Timestamp   : 2026-05-15 07:41:42
+Target Crop : General Field
+Soil Quality: GOOD   (Confidence: 100%)
+Water Quality: GOOD  (Confidence: 99%)
+
+--- Crop Suitability ---
+Crop       : General Field
+Suitability: 100% - Suitable
+Summary    : General Field looks suitable based on the current soil and water readings.
+Next Steps :
+- Proceed with General Field planning while continuing regular monitoring.
+- Retest the field before major fertilizer or irrigation changes.
+
+--- Recommendations ---
+[OK]  Soil and water quality are both Good. Safe to plant and
+      irrigate.

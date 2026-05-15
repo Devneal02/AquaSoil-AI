@@ -1,0 +1,34 @@
+=== AquaSoil-AI Advisory Report ===
+Sample      : Field C - Vegetable Bed
+Timestamp   : 2026-05-15 07:41:41
+Target Crop : Vegetables
+Soil Quality: POOR   (Confidence: 87%)
+Water Quality: POOR  (Confidence: 100%)
+
+--- Crop Suitability ---
+Crop       : Vegetables
+Suitability: 36% - Delay planting
+Summary    : Delay Vegetables planting until the field conditions improve.
+Next Steps :
+- Delay Vegetables planting until urgent soil or water issues are corrected.
+- Raise soil pH gradually with agricultural lime before planting.
+- Add nitrogen fertilizer or organic compost based on local fertilizer guidance.
+- Apply phosphate fertilizer or compost to support root growth.
+
+--- Recommendations ---
+[CRITICAL]  Soil is highly acidic. Apply agricultural lime. Do not
+            plant until pH reaches 6.0-7.0.
+[CRITICAL]  High electrical conductivity indicates salinity stress.
+            Flush soil with fresh water.
+[CRITICAL]  Water turbidity is dangerously high. Do not use for
+            irrigation.
+[CRITICAL]  Both soil and water quality are Poor. Urgent intervention
+            needed before any farming activity.
+[WARNING]  Low nitrogen detected. Apply urea fertilizer. Reassess in 2
+           weeks.
+[WARNING]  Low phosphorus detected. Apply phosphate fertilizer.
+[WARNING]  Low potassium detected. Apply potash fertilizer.
+[WARNING]  Low dissolved oxygen in water. Aerate water source if
+           possible.
+[WARNING]  High Total Dissolved Solids detected. Consider using an
+           alternative water source.
